@@ -23,7 +23,7 @@ export const CAR_CONFIG = {
   priceEUR: "~2 100 EUR",
   location: "Łódź, Łódzkie",
   vin: "VF7UD9HZC45892104",
-  color: "Złoty Metallic (Champagne Gold)",
+  color: "Biały",
   transmission: "Manualna (5-biegowa)",
   fuelType: "Diesel (Common Rail)",
   bodyType: "Minivan / MPV (5-miejscowy)",
@@ -98,7 +98,7 @@ export const CAR_CONFIG = {
     {
       id: "spalanie",
       title: "Średnie Spalanie",
-      value: "4.8 - 5.4 l / 100 km",
+      value: "5.4 - 6.5 l / 100 km",
       subtext: "Niezwykle oszczędny silnik 1.6 HDi",
       icon: "⛽",
       badge: "Eko"
@@ -115,7 +115,6 @@ export const CAR_CONFIG = {
         "Wielofunkcyjna kierownica z nieruchomym środkiem",
         "Komputer pokładowy z wyświetlaczem centralnym",
         "Elektrycznie sterowane szyby przednie i tylne",
-        "Elektrycznie składane i podgrzewane lusterka",
         "Podłokietniki dla kierowcy i pasażera",
         "Rolety przeciwsłoneczne w tylnych drzwiach",
         "Stoliki lotnicze w oparciach przednich foteli"
@@ -139,7 +138,7 @@ export const CAR_CONFIG = {
       items: [
         "Oryginalne radio CD/MP3 ze sterowaniem w kierownicy",
         "Nagłośnienie Fabryczne (6 głośników)",
-        "Alufelgi fabryczne Citroën 16 cali",
+        "Felgi stalowe 16 cali",
         "Światła przeciwmgielne przednie",
         "Liczne schowki (w desce rozdzielczej i podłodze)",
         "Chłodzony schowek centralny na napoje",
