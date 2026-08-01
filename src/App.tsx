@@ -44,6 +44,7 @@ import {
 } from 'lucide-react';
 import { CAR_CONFIG } from './carData';
 import { PhotoManagerModal, GalleryItem } from './components/PhotoManagerModal';
+import { CepikHistory } from './components/CepikHistory';
 import { getIDBItem, setIDBItem, removeIDBItem } from './utils/idbStorage';
 
 export default function App() {
@@ -726,7 +727,7 @@ export default function App() {
           </h2>
         </div>
 
-        <p className="text-center text-gray-400 max-w-2xl mx-auto mb-12 -mt-4 text-sm font-light">
+        <p className="text-center text-gray-400 max-w-[700px] w-full mx-auto mb-12 -mt-4 text-sm font-light">
           Wersja wyposażeniowa zaprojektowana dla najwyższego komfortu kierowcy i pasażerów podczas podróży.
         </p>
 
@@ -765,36 +766,57 @@ export default function App() {
          ========================================================================= */}
       <section id="galeria" className="py-16 px-4 sm:px-8 md:px-12 max-w-7xl mx-auto z-10 relative">
         
-        <div className="heading-h2-container">
-          <h2 className="heading-h2">
-            Galeria Pojazdu
-          </h2>
+        <div className="text-center mb-4">
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#d4af37]/15 border border-[#d4af37]/30 text-[#f6e05e] text-xs font-bold uppercase tracking-wider mb-3">
+            <Camera className="w-3.5 h-3.5" />
+            Fotogaleria HD
+          </span>
+          <div className="heading-h2-container">
+            <h2 className="heading-h2">
+              Galeria Pojazdu
+            </h2>
+          </div>
+          <p className="text-gray-400 max-w-xl mx-auto text-sm font-light mt-2">
+            Kliknij dowolne zdjęcie, aby otworzyć pełnoekranowy podgląd w wysokiej rozdzielczości.
+          </p>
         </div>
 
         {/* Фильтры категорий и кнопка добавления фото */}
-        <div className="flex items-center justify-between gap-3 mb-10 flex-wrap">
-          <div className="flex items-center gap-3 flex-wrap">
-            {['Wszystkie', 'Nadwozie', 'Wnętrze', 'Detale'].map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setGalleryFilter(cat)}
-                className={`px-5 py-2 rounded-full text-xs font-semibold transition-all duration-300 ${
-                  galleryFilter === cat
-                    ? 'bg-[#d4af37] text-black shadow-lg shadow-[#d4af37]/20 scale-105'
-                    : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
+        <div className="flex items-center justify-between gap-4 my-8 flex-wrap">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            {['Wszystkie', 'Nadwozie', 'Wnętrze', 'Detale'].map((cat) => {
+              const count = cat === 'Wszystkie' 
+                ? gallery.length 
+                : gallery.filter(i => i.category === cat).length;
+              const isActive = galleryFilter === cat;
+
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setGalleryFilter(cat)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 flex items-center gap-2 border ${
+                    isActive
+                      ? 'bg-gradient-to-r from-[#f6e05e] via-[#d4af37] to-[#b8860b] text-black border-[#f6e05e] shadow-[0_0_20px_rgba(212,175,55,0.35)] scale-105'
+                      : 'bg-black/40 text-gray-300 hover:text-white hover:bg-white/10 border-white/10 hover:border-[#d4af37]/40'
+                  }`}
+                >
+                  <span>{cat}</span>
+                  <span className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold ${
+                    isActive ? 'bg-black/20 text-black' : 'bg-white/10 text-gray-400'
+                  }`}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
           </div>
 
           {isAdmin && (
             <button
               onClick={() => setIsPhotoManagerOpen(true)}
-              className="px-5 py-2 rounded-full text-xs font-semibold bg-[#d4af37]/20 text-[#f6e05e] border border-[#d4af37]/50 hover:bg-[#d4af37] hover:text-black transition-all duration-300 flex items-center gap-2 shadow-lg"
+              className="px-4 py-2 rounded-xl text-xs font-bold bg-[#d4af37]/20 text-[#f6e05e] border border-[#d4af37]/50 hover:bg-[#d4af37] hover:text-black transition-all duration-300 flex items-center gap-2 shadow-lg hover:shadow-[#d4af37]/20"
             >
-              <Upload className="w-3.5 h-3.5" />
+              <Upload className="w-4 h-4" />
               <span>Dodaj / Zarządzaj zdjęciami</span>
             </button>
           )}
@@ -812,30 +834,47 @@ export default function App() {
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ duration: 0.4 }}
                 onClick={() => setSelectedImageIndex(gallery.findIndex(g => g.id === img.id))}
-                className="glass-card rounded-2xl overflow-hidden group cursor-pointer border border-white/10 hover:border-[#d4af37]/50 relative aspect-[4/3]"
+                className="glass-card rounded-2xl overflow-hidden group cursor-pointer border border-white/10 hover:border-[#f6e05e]/60 hover:shadow-[0_12px_35px_rgba(212,175,55,0.22)] transition-all duration-500 relative aspect-[4/3] flex flex-col justify-between"
               >
                 <img 
                   src={img.src} 
                   alt={img.title}
                   referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
-                  <span className="text-[#f6e05e] text-xs font-semibold uppercase tracking-wider">{img.category}</span>
-                  <span className="text-white text-base font-bold font-display">{img.title}</span>
-                  <div className="absolute top-3 right-3 flex items-center gap-1.5">
+
+                {/* Постоянная верхняя плашка: категория */}
+                <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none z-10">
+                  <span className="px-2.5 py-1 rounded-lg bg-black/65 backdrop-blur-md border border-white/15 text-[#f6e05e] text-[10px] font-bold uppercase tracking-wider shadow-md">
+                    {img.category}
+                  </span>
+
+                  <div className="flex items-center gap-1.5 pointer-events-auto">
                     {isAdmin && (
                       <button
                         onClick={(e) => handleDeleteImage(img.id, e)}
                         title="Usuń zdjęcie z galerii"
-                        className="p-2 rounded-full bg-red-600/80 hover:bg-red-600 backdrop-blur-md text-white transition-all hover:scale-110"
+                        className="p-1.5 rounded-lg bg-red-600/80 hover:bg-red-600 backdrop-blur-md text-white transition-all hover:scale-110 shadow-md"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     )}
-                    <div className="p-2 rounded-full bg-black/60 backdrop-blur-md text-white">
-                      <Maximize2 className="w-4 h-4" />
+                    <div className="p-1.5 rounded-lg bg-black/65 backdrop-blur-md border border-white/15 text-white group-hover:bg-[#d4af37] group-hover:text-black transition-all duration-300 shadow-md">
+                      <Maximize2 className="w-3.5 h-3.5" />
                     </div>
+                  </div>
+                </div>
+
+                {/* Нижний оверлей градиент при наведении */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent opacity-80 group-hover:opacity-95 transition-opacity duration-300 flex flex-col justify-end p-4 pointer-events-none">
+                  <div className="transform translate-y-1 group-hover:translate-y-0 transition-transform duration-300">
+                    <h4 className="text-white text-base font-bold font-display group-hover:text-[#f6e05e] transition-colors">
+                      {img.title}
+                    </h4>
+                    <span className="text-[11px] text-gray-300 font-light flex items-center gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <Sparkles className="w-3 h-3 text-[#f6e05e]" />
+                      Powiększ zdjęcie HD
+                    </span>
                   </div>
                 </div>
               </motion.div>
@@ -868,55 +907,22 @@ export default function App() {
       </section>
 
       {/* =========================================================================
-          8. ИСТОРИЯ ОБСЛУЖИВАНИЯ (HISTORIA SERWISOWA)
+          8. HISTORIA POJAZDU & RAPORT CEPIK
          ========================================================================= */}
       <section id="serwis" className="py-16 px-4 sm:px-8 md:px-12 max-w-7xl mx-auto z-10 relative">
         
         <div className="heading-h2-container">
           <h2 className="heading-h2">
-            Historia Serwisowa
+            Historia Pojazdu & Raport CEPiK
           </h2>
         </div>
 
         <p className="text-center text-gray-400 max-w-2xl mx-auto mb-12 -mt-4 text-sm font-light">
-          Wszystkie naprawy i czynności eksploatacyjne wykonywane na bieżąco na wysokiej jakości częściach.
+          Oficjalna, transparentna historia rejestracyjna i diagnostyczna z Krajowego Rejestru Pojazdów CEPiK wraz z udokumentowanym przebiegiem.
         </p>
 
-        {/* Таймлайн обслуживания */}
-        <div className="max-w-4xl mx-auto relative pl-6 sm:pl-8 border-l-2 border-[#d4af37]/30 space-y-10">
-          {CAR_CONFIG.serviceHistory.map((item, idx) => (
-            <motion.div 
-              key={idx}
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: idx * 0.1 }}
-              className="relative group"
-            >
-              {/* Точка на таймлайне */}
-              <div className="absolute -left-[31px] sm:-left-[39px] top-1.5 w-5 h-5 rounded-full bg-[#d4af37] border-4 border-[#0a0a0f] group-hover:scale-125 transition-transform" />
+        <CepikHistory onOpenTestDrive={() => setIsTestDriveOpen(true)} />
 
-              <div className="glass-card p-6 rounded-2xl border border-white/10 hover:border-[#d4af37]/40">
-                <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-                  <span className="text-xs font-bold px-3 py-1 rounded-full bg-[#d4af37]/15 text-[#f6e05e] border border-[#d4af37]/30 font-mono">
-                    {item.date}
-                  </span>
-                  <span className="text-xs text-gray-400 flex items-center gap-1">
-                    <Wrench className="w-3.5 h-3.5 text-[#d4af37]" />
-                    Weryfikacja Warsztatowa
-                  </span>
-                </div>
-
-                <h3 className="text-lg font-bold text-white mb-2 font-display">
-                  {item.title}
-                </h3>
-                <p className="text-sm text-gray-300 font-light leading-relaxed">
-                  {item.desc}
-                </p>
-              </div>
-            </motion.div>
-          ))}
-        </div>
       </section>
 
       {/* =========================================================================
@@ -947,13 +953,6 @@ export default function App() {
                 <span className="text-sm font-bold text-white block">{CAR_CONFIG.seller.name}</span>
                 <span className="text-xs text-gray-400">Prywatny Właściciel • {CAR_CONFIG.seller.city}</span>
               </div>
-              <a 
-                href="#kontakt"
-                className="px-5 py-2.5 rounded-xl bg-[#d4af37]/20 border border-[#d4af37]/40 text-[#d4af37] hover:bg-[#d4af37] hover:text-black font-semibold text-xs transition-all flex items-center gap-2"
-              >
-                <Send className="w-4 h-4" />
-                <span>Napisz (TG / WA / FB)</span>
-              </a>
             </div>
           </div>
 
@@ -1202,12 +1201,6 @@ export default function App() {
               <span className="text-xl font-bold font-display tracking-wider text-white">
                 <span className="gold-shimmer-text">citroen</span>c4<span className="text-[#f6e05e] italic">picasso</span><span className="text-[#d4af37]">.pl</span>
               </span>
-            </div>
-            <p className="text-sm font-light leading-relaxed text-gray-400">
-              Samochód w idealnym stanie technicznym. Bogate wyposażenie, niskie spalanie i 100% sprawność. Zapraszam do kontaktu.
-            </p>
-            <div className="pt-2 text-xs text-[#f6e05e]">
-              2007 r. • 1.6 HDi • 274 000 km
             </div>
           </div>
 
