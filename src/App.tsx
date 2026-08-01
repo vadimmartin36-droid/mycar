@@ -39,7 +39,8 @@ import {
   Trash2,
   Lock,
   Unlock,
-  Key
+  Key,
+  Camera
 } from 'lucide-react';
 import { CAR_CONFIG } from './carData';
 import { PhotoManagerModal, GalleryItem } from './components/PhotoManagerModal';
@@ -87,7 +88,7 @@ export default function App() {
       setAdminPinInput('');
       setAdminPinError('');
     } else {
-      setAdminPinError('Nieprawidłowy kod PIN (wpisz: 0586)');
+      setAdminPinError('Nieprawidłowy kod PIN');
     }
   };
 
@@ -316,12 +317,7 @@ export default function App() {
             <span>Napisz do mnie</span>
           </a>
 
-          <button
-            onClick={() => setIsTestDriveOpen(true)}
-            className="px-5 py-2.5 rounded-full border border-[#d4af37] text-[#d4af37] font-semibold text-sm hover:bg-[#d4af37] hover:text-black transition-all duration-300 shadow-lg shadow-[#d4af37]/10 hover:shadow-[#d4af37]/30 active:scale-95"
-          >
-            Umów jazdę próbną
-          </button>
+
 
           {/* Кнопка авторизации / статуса владельца */}
           <button
@@ -402,15 +398,7 @@ export default function App() {
                 <Send className="w-4 h-4 text-[#d4af37]" />
                 Napisz wiadomość
               </a>
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  setIsTestDriveOpen(true);
-                }}
-                className="w-full py-3 rounded-xl cta-button font-bold text-black"
-              >
-                Umów jazdę próbną
-              </button>
+
             </div>
           </motion.div>
         )}
@@ -446,7 +434,7 @@ export default function App() {
             {/* Блок с ценой */}
             <div className="p-6 rounded-2xl glass-card flex flex-wrap items-baseline justify-between gap-4 border-l-4 border-l-[#d4af37]">
               <div>
-                <span className="text-xs uppercase tracking-widest text-gray-400 block mb-1">Cena Ostateczna</span>
+                <span className="text-xs uppercase tracking-widest text-gray-400 block mb-1">Cena do negocjacji</span>
                 <div className="flex items-baseline gap-3">
                   <span className="text-4xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#f6e05e] via-[#d4af37] to-[#b8860b]">
                     {CAR_CONFIG.pricePLN}
@@ -484,51 +472,67 @@ export default function App() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="lg:col-span-6 relative"
+            className="lg:col-span-6 relative group"
           >
-            {/* Каркас фотографии с эффектом золотого свечения */}
-            <div className="relative rounded-3xl overflow-hidden glass-card p-2 group">
-              <div className="relative aspect-[16/10] rounded-2xl overflow-hidden bg-black/50">
+            {/* Фоновое аура-свечение золота */}
+            <div className="absolute -inset-1.5 bg-gradient-to-tr from-[#f6e05e]/25 via-[#d4af37]/40 to-[#b8860b]/25 rounded-[2.2rem] blur-2xl opacity-70 group-hover:opacity-100 transition duration-1000 group-hover:duration-500 pointer-events-none" />
+
+            {/* Главный контейнер карточки */}
+            <div className="relative rounded-[2rem] p-2.5 sm:p-3 bg-gradient-to-b from-white/15 via-white/5 to-black/80 border border-[#d4af37]/40 backdrop-blur-2xl shadow-[0_25px_60px_-15px_rgba(212,175,55,0.3)] transition-all duration-500 hover:border-[#f6e05e]/80">
+              <div className="relative aspect-[16/10] rounded-2xl overflow-hidden bg-black/60 shadow-inner group/img">
                 <img 
                   src={heroImage} 
                   alt="Citroën C4 Picasso 2007"
                   referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                  className="w-full h-full object-cover transform group-hover/img:scale-105 transition-transform duration-700 ease-out"
                 />
 
                 {/* Оверлей градиент */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent pointer-events-none" />
 
-                {/* Кнопка управления фото и Лайк */}
-                <div className="absolute top-4 right-4 flex items-center gap-2">
-                  {isAdmin && (
-                    <button
-                      onClick={() => setIsPhotoManagerOpen(true)}
-                      className="px-3.5 py-2 rounded-full bg-black/70 backdrop-blur-md border border-[#d4af37]/50 text-[#f6e05e] font-semibold text-xs hover:bg-[#d4af37] hover:text-black transition-all flex items-center gap-1.5 shadow-lg"
-                      title="Dodaj lub zmień zdjęcia"
+                {/* Верхняя панель: Индикатор снимка + кнопка Лайк & Управления */}
+                <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between pointer-events-auto">
+                  <div className="flex items-center gap-2">
+                    <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/75 backdrop-blur-md border border-[#d4af37]/40 text-[#f6e05e] text-xs font-semibold shadow-xl">
+                      <Camera className="w-3.5 h-3.5 text-[#f6e05e]" />
+                      <span>Galeria ({gallery.length})</span>
+                    </span>
+                    <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-emerald-500/20 backdrop-blur-md border border-emerald-500/40 text-emerald-300 text-[11px] font-bold">
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>100% Real Foto</span>
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {isAdmin && (
+                      <button
+                        onClick={() => setIsPhotoManagerOpen(true)}
+                        className="px-3 py-1.5 rounded-full bg-[#d4af37] text-black font-bold text-xs hover:bg-[#f6e05e] transition-all flex items-center gap-1.5 shadow-lg shadow-[#d4af37]/30"
+                        title="Dodaj lub zmień zdjęcia"
+                      >
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>Zmień zdjęcia</span>
+                      </button>
+                    )}
+
+                    <button 
+                      onClick={() => setIsLiked(!isLiked)}
+                      className="w-9 h-9 rounded-full bg-black/70 backdrop-blur-md border border-white/20 flex items-center justify-center text-white hover:border-[#d4af37] hover:bg-black transition-all shadow-lg active:scale-90"
+                      aria-label="Dodaj do ulubionych"
                     >
-                      <Upload className="w-3.5 h-3.5" />
-                      <span>Zmień zdjęcia</span>
+                      <Heart className={`w-4 h-4 transition-transform duration-300 ${isLiked ? 'fill-red-500 text-red-500 scale-110' : 'text-gray-300'}`} />
                     </button>
-                  )}
-
-                  <button 
-                    onClick={() => setIsLiked(!isLiked)}
-                    className="w-10 h-10 rounded-full bg-black/60 backdrop-blur-md border border-white/20 flex items-center justify-center text-white hover:border-[#d4af37] transition-all"
-                    aria-label="Dodaj do ulubionych"
-                  >
-                    <Heart className={`w-4 h-4 ${isLiked ? 'fill-red-500 text-red-500' : 'text-gray-300'}`} />
-                  </button>
+                  </div>
                 </div>
 
-                {/* Подпись к фото */}
-                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-xs font-medium text-gray-300">
-                  <span className="bg-black/60 px-3 py-1.5 rounded-lg backdrop-blur-md border border-white/10">
-                    Zdjęcie Rzeczywiste • Złoty Metallic
+                {/* Нижная подпись и кнопка увеличения */}
+                <div className="absolute bottom-3.5 left-3.5 right-3.5 flex items-center justify-between text-xs font-medium text-gray-200">
+                  <span className="bg-black/70 px-3 py-1.5 rounded-xl backdrop-blur-md border border-white/15 text-gray-300 font-medium tracking-wide">
+                    Złoty Metallic • Stan Kolekcjonerski
                   </span>
                   <button 
                     onClick={() => setSelectedImageIndex(0)}
-                    className="bg-[#d4af37] text-black font-bold px-3 py-1.5 rounded-lg backdrop-blur-md hover:bg-[#f6e05e] transition-colors flex items-center gap-1.5"
+                    className="bg-gradient-to-r from-[#f6e05e] via-[#d4af37] to-[#b8860b] text-black font-extrabold px-3.5 py-1.5 rounded-xl backdrop-blur-md hover:brightness-110 transition-all shadow-lg shadow-[#d4af37]/30 flex items-center gap-1.5 active:scale-95"
                   >
                     <Maximize2 className="w-3.5 h-3.5" />
                     Powiększ
@@ -536,18 +540,20 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Плавающая карточка 1: Экономия */}
+              {/* Плавающая карточка 1: Экономия (Średnie spalanie 5.6 l / 100 km) */}
               <motion.div 
                 animate={{ y: [0, -6, 0] }}
                 transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-                className="absolute -bottom-3 left-2 sm:-bottom-6 sm:-left-4 max-w-[200px] sm:max-w-none glass-card p-3 sm:p-3.5 rounded-2xl flex items-center gap-2.5 sm:gap-3 border border-[#d4af37]/30 shadow-2xl bg-[#0a0a0f]/95 z-10"
+                className="absolute -bottom-3 left-2 sm:-bottom-5 sm:-left-4 max-w-[240px] sm:max-w-none px-4 py-3 rounded-2xl flex items-center border border-[#d4af37]/60 shadow-[0_15px_35px_rgba(212,175,55,0.25)] bg-[#0c0c16]/95 backdrop-blur-xl z-10 hover:border-[#f6e05e] hover:shadow-[0_20px_40px_rgba(246,224,94,0.35)] transition-all duration-300"
               >
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-[#d4af37]/20 flex items-center justify-center text-[#d4af37] shrink-0">
-                  <Fuel className="w-4 h-4 sm:w-5 sm:h-5" />
-                </div>
                 <div>
-                  <span className="text-[10px] sm:text-[11px] uppercase tracking-wider text-gray-400 block">Spalanie w trasie</span>
-                  <span className="text-xs sm:text-sm font-bold text-white">4.8 l / 100 km</span>
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <span className="text-[10px] sm:text-[11px] uppercase tracking-widest text-gray-300 block font-bold">Średnie spalanie</span>
+                    <span className="px-1.5 py-0.2 text-[9px] font-black uppercase rounded bg-[#d4af37]/20 text-[#f6e05e] border border-[#d4af37]/40">Eko</span>
+                  </div>
+                  <span className="text-sm sm:text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-[#f6e05e] via-white to-[#d4af37] tracking-tight">
+                    5.6 l <span className="text-xs font-semibold text-gray-300">/ 100 km</span>
+                  </span>
                 </div>
               </motion.div>
 
@@ -555,14 +561,15 @@ export default function App() {
               <motion.div 
                 animate={{ y: [0, 6, 0] }}
                 transition={{ repeat: Infinity, duration: 4.5, ease: "easeInOut", delay: 0.5 }}
-                className="absolute -top-3 right-2 sm:-top-6 sm:-right-4 max-w-[210px] sm:max-w-none glass-card p-3 sm:p-3.5 rounded-2xl flex items-center gap-2.5 sm:gap-3 border border-[#d4af37]/30 shadow-2xl bg-[#0a0a0f]/95 z-10"
+                className="absolute -top-3 right-2 sm:-top-5 sm:-right-4 max-w-[240px] sm:max-w-none px-4 py-3 rounded-2xl flex items-center border border-[#d4af37]/60 shadow-[0_15px_35px_rgba(212,175,55,0.25)] bg-[#0c0c16]/95 backdrop-blur-xl z-10 hover:border-[#f6e05e] hover:shadow-[0_20px_40px_rgba(246,224,94,0.35)] transition-all duration-300"
               >
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-[#d4af37]/20 flex items-center justify-center text-[#d4af37] shrink-0">
-                  <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
-                </div>
                 <div>
-                  <span className="text-[10px] sm:text-[11px] uppercase tracking-wider text-gray-400 block">Szyba Przednia</span>
-                  <span className="text-xs sm:text-sm font-bold text-white">Visiospace 180°</span>
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <span className="text-[10px] sm:text-[11px] uppercase tracking-widest text-gray-300 block font-bold">Panoramy Visiospace</span>
+                  </div>
+                  <span className="text-sm sm:text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-[#f6e05e] to-[#d4af37] tracking-tight">
+                    Szyba 180°
+                  </span>
                 </div>
               </motion.div>
 
@@ -1538,7 +1545,7 @@ export default function App() {
                     type="password"
                     value={adminPinInput}
                     onChange={(e) => setAdminPinInput(e.target.value)}
-                    placeholder="Wpisz PIN (0586)"
+                    placeholder="Wpisz PIN"
                     className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/15 text-white placeholder-gray-500 focus:outline-none focus:border-[#d4af37] text-center tracking-widest text-lg font-mono"
                     autoFocus
                   />
@@ -1547,9 +1554,6 @@ export default function App() {
                       {adminPinError}
                     </p>
                   )}
-                  <p className="text-[11px] text-gray-400 mt-2.5 text-center">
-                    Kod PIN dostępu to <span className="text-[#f6e05e] font-mono font-bold">0586</span>
-                  </p>
                 </div>
 
                 <div className="pt-2 flex gap-3">

@@ -98,7 +98,7 @@ export const CAR_CONFIG = {
     {
       id: "spalanie",
       title: "Średnie Spalanie",
-      value: "5.4 - 6.5 l / 100 km",
+      value: "5.6 l / 100 km",
       subtext: "Niezwykle oszczędny silnik 1.6 HDi",
       icon: "⛽",
       badge: "Eko"
