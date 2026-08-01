@@ -76,7 +76,7 @@ export default function App() {
 
   const handleAdminLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (adminPinInput === '1234' || adminPinInput.toLowerCase() === 'admin' || adminPinInput === '7777') {
+    if (adminPinInput === '0586') {
       setIsAdmin(true);
       try {
         localStorage.setItem('citroen_is_admin', 'true');
@@ -87,7 +87,7 @@ export default function App() {
       setAdminPinInput('');
       setAdminPinError('');
     } else {
-      setAdminPinError('Nieprawidłowy kod PIN (domyślny kod: 1234)');
+      setAdminPinError('Nieprawidłowy kod PIN (wpisz: 0586)');
     }
   };
 
@@ -451,7 +451,6 @@ export default function App() {
                   <span className="text-4xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#f6e05e] via-[#d4af37] to-[#b8860b]">
                     {CAR_CONFIG.pricePLN}
                   </span>
-                  <span className="text-sm text-gray-400 font-medium">{CAR_CONFIG.priceEUR}</span>
                 </div>
               </div>
 
@@ -1539,7 +1538,7 @@ export default function App() {
                     type="password"
                     value={adminPinInput}
                     onChange={(e) => setAdminPinInput(e.target.value)}
-                    placeholder="Wpisz PIN (domyślny: 1234)"
+                    placeholder="Wpisz PIN (0586)"
                     className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/15 text-white placeholder-gray-500 focus:outline-none focus:border-[#d4af37] text-center tracking-widest text-lg font-mono"
                     autoFocus
                   />
@@ -1549,7 +1548,7 @@ export default function App() {
                     </p>
                   )}
                   <p className="text-[11px] text-gray-400 mt-2.5 text-center">
-                    Domyślny kod PIN dla demonstracji to <span className="text-[#f6e05e] font-mono font-bold">1234</span>
+                    Kod PIN dostępu to <span className="text-[#f6e05e] font-mono font-bold">0586</span>
                   </p>
                 </div>
 

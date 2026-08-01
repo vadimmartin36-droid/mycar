@@ -14,7 +14,7 @@
 }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background-color: var(--bg-main);
   color: #e2e8f0;
   overflow-x: hidden;
@@ -236,12 +236,12 @@ html, body {
 
 /* Стилизация заголовков */
 .font-display {
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
 }
 
 .heading-h1 {
-  font-family: 'Montserrat', sans-serif;
-  font-size: clamp(2.8rem, 7.5vw, 5.2rem);
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  font-size: clamp(2.5rem, 7vw, 5.2rem);
   font-weight: 800;
   font-style: normal;
   background: linear-gradient(
@@ -262,8 +262,8 @@ html, body {
 }
 
 .heading-h2 {
-  font-family: 'Montserrat', sans-serif;
-  font-size: clamp(1.8rem, 5vw, 3rem);
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  font-size: clamp(1.6rem, 4.5vw, 3rem);
   font-weight: 800;
   font-style: normal;
   background: linear-gradient(135deg, #f6e05e, #d4af37, #b8860b);
