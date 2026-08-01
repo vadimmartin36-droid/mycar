@@ -490,19 +490,8 @@ export default function App() {
                 {/* Оверлей градиент */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent pointer-events-none" />
 
-                {/* Верхняя панель: Индикатор снимка + кнопка Лайк & Управления */}
-                <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between pointer-events-auto">
-                  <div className="flex items-center gap-2">
-                    <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/75 backdrop-blur-md border border-[#d4af37]/40 text-[#f6e05e] text-xs font-semibold shadow-xl">
-                      <Camera className="w-3.5 h-3.5 text-[#f6e05e]" />
-                      <span>Galeria ({gallery.length})</span>
-                    </span>
-                    <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-emerald-500/20 backdrop-blur-md border border-emerald-500/40 text-emerald-300 text-[11px] font-bold">
-                      <ShieldCheck className="w-3.5 h-3.5" />
-                      <span>100% Real Foto</span>
-                    </span>
-                  </div>
-
+                {/* Верхняя панель: кнопка Лайк & Управления */}
+                <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-end pointer-events-auto">
                   <div className="flex items-center gap-2">
                     {isAdmin && (
                       <button
@@ -525,11 +514,8 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Нижная подпись и кнопка увеличения */}
-                <div className="absolute bottom-3.5 left-3.5 right-3.5 flex items-center justify-between text-xs font-medium text-gray-200">
-                  <span className="bg-black/70 px-3 py-1.5 rounded-xl backdrop-blur-md border border-white/15 text-gray-300 font-medium tracking-wide">
-                    Złoty Metallic • Stan Kolekcjonerski
-                  </span>
+                {/* Кнопка увеличения */}
+                <div className="absolute bottom-3.5 right-3.5 flex items-center text-xs font-medium text-gray-200">
                   <button 
                     onClick={() => setSelectedImageIndex(0)}
                     className="bg-gradient-to-r from-[#f6e05e] via-[#d4af37] to-[#b8860b] text-black font-extrabold px-3.5 py-1.5 rounded-xl backdrop-blur-md hover:brightness-110 transition-all shadow-lg shadow-[#d4af37]/30 flex items-center gap-1.5 active:scale-95"
