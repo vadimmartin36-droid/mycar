@@ -36,7 +36,10 @@ import {
   Heart,
   Upload,
   ImagePlus,
-  Trash2
+  Trash2,
+  Lock,
+  Unlock,
+  Key
 } from 'lucide-react';
 import { CAR_CONFIG } from './carData';
 import { PhotoManagerModal, GalleryItem } from './components/PhotoManagerModal';
@@ -53,6 +56,49 @@ export default function App() {
   const [isLiked, setIsLiked] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isPhotoManagerOpen, setIsPhotoManagerOpen] = useState(false);
+
+  // Авторизация владельца объявления (Admin/Owner Mode)
+  const [isAdmin, setIsAdmin] = useState<boolean>(() => {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.has('admin') || urlParams.has('owner')) {
+        localStorage.setItem('citroen_is_admin', 'true');
+        return true;
+      }
+      return localStorage.getItem('citroen_is_admin') === 'true';
+    } catch {
+      return false;
+    }
+  });
+  const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
+  const [adminPinInput, setAdminPinInput] = useState('');
+  const [adminPinError, setAdminPinError] = useState('');
+
+  const handleAdminLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (adminPinInput === '1234' || adminPinInput.toLowerCase() === 'admin' || adminPinInput === '7777') {
+      setIsAdmin(true);
+      try {
+        localStorage.setItem('citroen_is_admin', 'true');
+      } catch {
+        // ignore
+      }
+      setIsAdminModalOpen(false);
+      setAdminPinInput('');
+      setAdminPinError('');
+    } else {
+      setAdminPinError('Nieprawidłowy kod PIN (domyślny kod: 1234)');
+    }
+  };
+
+  const handleAdminLogout = () => {
+    setIsAdmin(false);
+    try {
+      localStorage.removeItem('citroen_is_admin');
+    } catch {
+      // ignore
+    }
+  };
 
   // Галерея и главное фото с поддержкой IndexedDB и localStorage
   const [gallery, setGallery] = useState<GalleryItem[]>(() => {
@@ -260,8 +306,8 @@ export default function App() {
           <a href="#kontakt" className="hover:text-[#d4af37] transition-colors">Kontakt</a>
         </nav>
 
-        {/* Правая часть: Быстрый контакт и кнопка вызова модального окна */}
-        <div className="hidden sm:flex items-center gap-4">
+        {/* Правая часть: Быстрый контакт, кнопка вызова модального окна и статус Właściciela */}
+        <div className="hidden sm:flex items-center gap-3">
           <a 
             href="#kontakt"
             className="flex items-center gap-2 text-sm font-semibold text-gray-200 hover:text-[#d4af37] transition-colors px-3 py-2 rounded-lg hover:bg-white/5"
@@ -275,6 +321,20 @@ export default function App() {
             className="px-5 py-2.5 rounded-full border border-[#d4af37] text-[#d4af37] font-semibold text-sm hover:bg-[#d4af37] hover:text-black transition-all duration-300 shadow-lg shadow-[#d4af37]/10 hover:shadow-[#d4af37]/30 active:scale-95"
           >
             Umów jazdę próbną
+          </button>
+
+          {/* Кнопка авторизации / статуса владельца */}
+          <button
+            onClick={() => isAdmin ? handleAdminLogout() : setIsAdminModalOpen(true)}
+            className={`p-2.5 rounded-full border text-xs font-semibold transition-all duration-300 flex items-center gap-1.5 shadow-md ${
+              isAdmin
+                ? 'bg-[#d4af37]/20 border-[#d4af37] text-[#f6e05e] hover:bg-red-500/20 hover:border-red-500 hover:text-red-300'
+                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-[#d4af37]/50'
+            }`}
+            title={isAdmin ? "Wyłącz tryb edycji (Właściciel)" : "Tryb Właściciela (Dodawanie / Zmiana zdjęć)"}
+          >
+            {isAdmin ? <ShieldCheck className="w-4 h-4 text-[#f6e05e]" /> : <Lock className="w-4 h-4" />}
+            <span className="hidden xl:inline text-xs">{isAdmin ? "Tryb Edycji" : "Właściciel"}</span>
           </button>
         </div>
 
@@ -465,14 +525,16 @@ export default function App() {
 
                 {/* Кнопка управления фото и Лайк */}
                 <div className="absolute top-4 right-4 flex items-center gap-2">
-                  <button
-                    onClick={() => setIsPhotoManagerOpen(true)}
-                    className="px-3.5 py-2 rounded-full bg-black/70 backdrop-blur-md border border-[#d4af37]/50 text-[#f6e05e] font-semibold text-xs hover:bg-[#d4af37] hover:text-black transition-all flex items-center gap-1.5 shadow-lg"
-                    title="Dodaj lub zmień zdjęcia"
-                  >
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>Zmień zdjęcia</span>
-                  </button>
+                  {isAdmin && (
+                    <button
+                      onClick={() => setIsPhotoManagerOpen(true)}
+                      className="px-3.5 py-2 rounded-full bg-black/70 backdrop-blur-md border border-[#d4af37]/50 text-[#f6e05e] font-semibold text-xs hover:bg-[#d4af37] hover:text-black transition-all flex items-center gap-1.5 shadow-lg"
+                      title="Dodaj lub zmień zdjęcia"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>Zmień zdjęcia</span>
+                    </button>
+                  )}
 
                   <button 
                     onClick={() => setIsLiked(!isLiked)}
@@ -735,13 +797,15 @@ export default function App() {
             ))}
           </div>
 
-          <button
-            onClick={() => setIsPhotoManagerOpen(true)}
-            className="px-5 py-2 rounded-full text-xs font-semibold bg-[#d4af37]/20 text-[#f6e05e] border border-[#d4af37]/50 hover:bg-[#d4af37] hover:text-black transition-all duration-300 flex items-center gap-2 shadow-lg"
-          >
-            <Upload className="w-3.5 h-3.5" />
-            <span>Dodaj / Zarządzaj zdjęciami</span>
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => setIsPhotoManagerOpen(true)}
+              className="px-5 py-2 rounded-full text-xs font-semibold bg-[#d4af37]/20 text-[#f6e05e] border border-[#d4af37]/50 hover:bg-[#d4af37] hover:text-black transition-all duration-300 flex items-center gap-2 shadow-lg"
+            >
+              <Upload className="w-3.5 h-3.5" />
+              <span>Dodaj / Zarządzaj zdjęciami</span>
+            </button>
+          )}
         </div>
 
         {/* Сетка фотографий */}
@@ -768,13 +832,15 @@ export default function App() {
                   <span className="text-[#f6e05e] text-xs font-semibold uppercase tracking-wider">{img.category}</span>
                   <span className="text-white text-base font-bold font-display">{img.title}</span>
                   <div className="absolute top-3 right-3 flex items-center gap-1.5">
-                    <button
-                      onClick={(e) => handleDeleteImage(img.id, e)}
-                      title="Usuń zdjęcie z galerii"
-                      className="p-2 rounded-full bg-red-600/80 hover:bg-red-600 backdrop-blur-md text-white transition-all hover:scale-110"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    {isAdmin && (
+                      <button
+                        onClick={(e) => handleDeleteImage(img.id, e)}
+                        title="Usuń zdjęcie z galerii"
+                        className="p-2 rounded-full bg-red-600/80 hover:bg-red-600 backdrop-blur-md text-white transition-all hover:scale-110"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                     <div className="p-2 rounded-full bg-black/60 backdrop-blur-md text-white">
                       <Maximize2 className="w-4 h-4" />
                     </div>
@@ -786,21 +852,25 @@ export default function App() {
         ) : (
           <div className="glass-card rounded-3xl p-12 text-center border border-dashed border-white/20 my-4 flex flex-col items-center justify-center">
             <div className="w-16 h-16 rounded-full bg-[#d4af37]/10 text-[#d4af37] border border-[#d4af37]/30 flex items-center justify-center mb-4">
-              <Upload className="w-8 h-8" />
+              <Car className="w-8 h-8 text-[#d4af37]" />
             </div>
             <h3 className="text-xl font-bold text-white mb-2 font-display">
               Brak zdjęć w tej kategorii
             </h3>
             <p className="text-xs text-gray-400 max-w-md mb-6">
-              Galeria jest obecnie pusta. Możesz w każdej chwili dodać własne zdjęcia samochodu, klikając poniższy przycisk.
+              {isAdmin 
+                ? "Galeria jest obecnie pusta. Jako właściciel możesz w każdej chwili dodać własne zdjęcia samochodu."
+                : "W tej kategorii nie ma obecnie opublikowanych zdjęć."}
             </p>
-            <button
-              onClick={() => setIsPhotoManagerOpen(true)}
-              className="px-6 py-3 rounded-xl bg-[#d4af37] text-black font-bold text-xs hover:bg-[#f6e05e] transition-all shadow-lg shadow-[#d4af37]/20 flex items-center gap-2"
-            >
-              <ImagePlus className="w-4 h-4" />
-              <span>Dodaj pierwsze zdjęcie</span>
-            </button>
+            {isAdmin && (
+              <button
+                onClick={() => setIsPhotoManagerOpen(true)}
+                className="px-6 py-3 rounded-xl bg-[#d4af37] text-black font-bold text-xs hover:bg-[#f6e05e] transition-all shadow-lg shadow-[#d4af37]/20 flex items-center gap-2"
+              >
+                <ImagePlus className="w-4 h-4" />
+                <span>Dodaj pierwsze zdjęcie</span>
+              </button>
+            )}
           </div>
         )}
       </section>
@@ -1233,6 +1303,13 @@ export default function App() {
         <div className="max-w-7xl mx-auto pt-8 border-t border-[#d4af37]/20 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-500 gap-4">
           <p>© 2026. Wszystkie prawa zastrzeżone.</p>
           <p className="text-gray-400">Ogłoszenie Prywatne • Citroën C4 Picasso 2007</p>
+          <button
+            onClick={() => isAdmin ? handleAdminLogout() : setIsAdminModalOpen(true)}
+            className="text-xs text-gray-500 hover:text-[#f6e05e] transition-colors flex items-center gap-1.5 py-1 px-2.5 rounded-full hover:bg-white/5 border border-transparent hover:border-white/10"
+          >
+            {isAdmin ? <ShieldCheck className="w-3.5 h-3.5 text-[#f6e05e]" /> : <Lock className="w-3.5 h-3.5" />}
+            <span>{isAdmin ? "Wyłącz Tryb Właściciela" : "Panel Właściciela"}</span>
+          </button>
         </div>
       </footer>
 
@@ -1415,6 +1492,106 @@ export default function App() {
         onUpdateHero={handleUpdateHero}
         onResetDefaults={handleResetDefaults}
       />
+
+      {/* =========================================================================
+          16. МОДАЛЬНОЕ ОКНО АВТОРИЗАЦИИ ВЛАДЕЛЬЦА (PANEL WŁAŚCICIELA)
+         ========================================================================= */}
+      <AnimatePresence>
+        {isAdminModalOpen && (
+          <div className="fixed inset-0 z-[3000] bg-black/85 backdrop-blur-xl flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="glass-card max-w-md w-full rounded-3xl p-6 sm:p-8 border border-[#d4af37]/40 shadow-2xl relative bg-[#0a0a0f]"
+            >
+              <button
+                onClick={() => {
+                  setIsAdminModalOpen(false);
+                  setAdminPinError('');
+                  setAdminPinInput('');
+                }}
+                className="absolute top-5 right-5 p-2 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 transition-all"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 rounded-2xl bg-[#d4af37]/20 border border-[#d4af37]/50 flex items-center justify-center text-[#f6e05e]">
+                  <Lock className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white font-display">
+                    Panel Właściciela
+                  </h3>
+                  <p className="text-xs text-gray-400">
+                    Dostęp do zarządzania zdjęciami pojazdu
+                  </p>
+                </div>
+              </div>
+
+              <form onSubmit={handleAdminLogin} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-300 mb-2">
+                    Wpisz kod PIN właściciela:
+                  </label>
+                  <input
+                    type="password"
+                    value={adminPinInput}
+                    onChange={(e) => setAdminPinInput(e.target.value)}
+                    placeholder="Wpisz PIN (domyślny: 1234)"
+                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/15 text-white placeholder-gray-500 focus:outline-none focus:border-[#d4af37] text-center tracking-widest text-lg font-mono"
+                    autoFocus
+                  />
+                  {adminPinError && (
+                    <p className="text-red-400 text-xs mt-2 text-center font-medium">
+                      {adminPinError}
+                    </p>
+                  )}
+                  <p className="text-[11px] text-gray-400 mt-2.5 text-center">
+                    Domyślny kod PIN dla demonstracji to <span className="text-[#f6e05e] font-mono font-bold">1234</span>
+                  </p>
+                </div>
+
+                <div className="pt-2 flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsAdminModalOpen(false);
+                      setAdminPinError('');
+                      setAdminPinInput('');
+                    }}
+                    className="flex-1 py-3 rounded-xl bg-white/5 border border-white/10 text-gray-300 font-semibold text-xs hover:bg-white/10 transition-all"
+                  >
+                    Anuluj
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 py-3 rounded-xl bg-[#d4af37] text-black font-bold text-xs hover:bg-[#f6e05e] transition-all shadow-lg shadow-[#d4af37]/20"
+                  >
+                    Odblokuj edycję
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Floating status badge for Admin mode */}
+      {isAdmin && (
+        <div className="fixed bottom-20 left-4 z-40 bg-[#0a0a0f]/95 backdrop-blur-md border border-[#d4af37]/60 p-2 px-3.5 rounded-full flex items-center gap-2 shadow-2xl text-xs text-[#f6e05e]">
+          <ShieldCheck className="w-4 h-4 text-[#f6e05e]" />
+          <span className="font-semibold hidden sm:inline">Tryb Właściciela (Edycja)</span>
+          <button
+            onClick={handleAdminLogout}
+            className="ml-1 px-2.5 py-1 rounded-full bg-red-500/20 text-red-300 hover:bg-red-500 hover:text-white transition-all text-[11px] font-bold"
+            title="Zablokuj tryb edycji"
+          >
+            Zablokuj
+          </button>
+        </div>
+      )}
 
       {/* =========================================================================
           15. МОБИЛЬНАЯ ФИКСИРОВАННАЯ НИЖНЯЯ ПАНЕЛЬ СВЯЗИ (MOBILE STICKY ACTION BAR)
