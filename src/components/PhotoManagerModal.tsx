@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Upload, Trash2, ArrowUp, ArrowDown, Star, X, ImagePlus, Check, RotateCcw, Info } from 'lucide-react';
+import { compressImage } from '../utils/idbStorage';
 
 export interface GalleryItem {
   id: number | string;
@@ -37,8 +38,8 @@ export function PhotoManagerModal({
 
   if (!isOpen) return null;
 
-  // Обработка загрузки файла через FileReader
-  const handleFileUpload = (files: FileList | null) => {
+  // Обработка загрузки файла с авто-сжатием
+  const handleFileUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
     const file = files[0];
     if (!file.type.startsWith('image/')) {
@@ -46,15 +47,15 @@ export function PhotoManagerModal({
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const result = e.target?.result as string;
-      if (result) {
-        setUploadedPreview(result);
-        setStatusMessage('Zdjęcie załadowane! Wpisz tytuł i dodaj do galerii.');
-      }
-    };
-    reader.readAsDataURL(file);
+    try {
+      setStatusMessage('Optymalizacja zdjęcia...');
+      const compressedDataUrl = await compressImage(file, 1600, 1200, 0.82);
+      setUploadedPreview(compressedDataUrl);
+      setStatusMessage('Zdjęcie załadowane! Wpisz tytuł i dodaj do galerii.');
+    } catch (err) {
+      console.error(err);
+      setStatusMessage('Błąd podczas przetwarzania zdjęcia.');
+    }
   };
 
   const handleDrag = (e: React.DragEvent) => {
@@ -218,7 +219,7 @@ export function PhotoManagerModal({
               <div
                 onDragEnter={handleDrag}
                 onDragLeave={handleDrag}
-                onOver={handleDrag}
+                onDragOver={handleDrag}
                 onDrop={handleDrop}
                 className={`border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer ${
                   dragActive

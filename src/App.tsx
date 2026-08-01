@@ -40,6 +40,7 @@ import {
 } from 'lucide-react';
 import { CAR_CONFIG } from './carData';
 import { PhotoManagerModal, GalleryItem } from './components/PhotoManagerModal';
+import { getIDBItem, setIDBItem, removeIDBItem } from './utils/idbStorage';
 
 export default function App() {
   // Состояния интерфейса
@@ -53,13 +54,13 @@ export default function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isPhotoManagerOpen, setIsPhotoManagerOpen] = useState(false);
 
-  // Галерея и главное фото с поддержкой localStorage
+  // Галерея и главное фото с поддержкой IndexedDB и localStorage
   const [gallery, setGallery] = useState<GalleryItem[]>(() => {
     try {
       const saved = localStorage.getItem('citroen_custom_gallery');
       if (saved) return JSON.parse(saved);
-    } catch (e) {
-      console.error(e);
+    } catch {
+      // ignore
     }
     return CAR_CONFIG.images.gallery;
   });
@@ -68,38 +69,59 @@ export default function App() {
     try {
       const saved = localStorage.getItem('citroen_custom_hero');
       if (saved) return saved;
-    } catch (e) {
-      console.error(e);
+    } catch {
+      // ignore
     }
     return CAR_CONFIG.images.hero;
   });
 
+  // Загрузка сохраненных данных из IndexedDB при старте
+  useEffect(() => {
+    let active = true;
+    async function loadStoredData() {
+      const idbGallery = await getIDBItem<GalleryItem[]>('citroen_custom_gallery');
+      if (active && idbGallery && Array.isArray(idbGallery)) {
+        setGallery(idbGallery);
+      }
+      const idbHero = await getIDBItem<string>('citroen_custom_hero');
+      if (active && idbHero) {
+        setHeroImage(idbHero);
+      }
+    }
+    loadStoredData();
+    return () => { active = false; };
+  }, []);
+
   const handleUpdateGallery = (newGallery: GalleryItem[]) => {
     setGallery(newGallery);
+    setIDBItem('citroen_custom_gallery', newGallery);
     try {
       localStorage.setItem('citroen_custom_gallery', JSON.stringify(newGallery));
-    } catch (e) {
-      console.error(e);
+    } catch {
+      // Игнорируем QuotaExceededError для localStorage, так как данные сохранены в IndexedDB
     }
   };
 
   const handleUpdateHero = (newHeroSrc: string) => {
     setHeroImage(newHeroSrc);
+    setIDBItem('citroen_custom_hero', newHeroSrc);
     try {
       localStorage.setItem('citroen_custom_hero', newHeroSrc);
-    } catch (e) {
-      console.error(e);
+    } catch {
+      // Игнорируем QuotaExceededError для localStorage
     }
   };
 
   const handleResetDefaults = () => {
     setGallery(CAR_CONFIG.images.gallery);
     setHeroImage(CAR_CONFIG.images.hero);
+    removeIDBItem('citroen_custom_gallery');
+    removeIDBItem('citroen_custom_hero');
     try {
       localStorage.removeItem('citroen_custom_gallery');
       localStorage.removeItem('citroen_custom_hero');
-    } catch (e) {
-      console.error(e);
+    } catch {
+      // ignore
     }
   };
 
