@@ -40,7 +40,8 @@ import {
   Lock,
   Unlock,
   Key,
-  Camera
+  Camera,
+  ArrowUp
 } from 'lucide-react';
 import { CAR_CONFIG } from './carData';
 import { PhotoManagerModal, GalleryItem } from './components/PhotoManagerModal';
@@ -50,6 +51,7 @@ import { getIDBItem, setIDBItem, removeIDBItem } from './utils/idbStorage';
 export default function App() {
   // Состояния интерфейса
   const [isScrolled, setIsScrolled] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [galleryFilter, setGalleryFilter] = useState<string>('Wszystkie');
   const [isTestDriveOpen, setIsTestDriveOpen] = useState(false);
@@ -198,7 +200,7 @@ export default function App() {
   });
   const [contactSuccess, setContactSuccess] = useState(false);
 
-  // Эффект темнения шапки при прокрутке
+  // Эффект темнения шапки и отображения кнопки "наверх" при прокрутке
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 40) {
@@ -206,10 +208,23 @@ export default function App() {
       } else {
         setIsScrolled(false);
       }
+
+      if (window.scrollY > 300) {
+        setShowScrollTop(true);
+      } else {
+        setShowScrollTop(false);
+      }
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
 
   // Копирование VIN в буфер обмена
   const handleCopyVin = () => {
@@ -1594,6 +1609,26 @@ export default function App() {
           <span>Jazda Próbna</span>
         </button>
       </div>
+
+      {/* =========================================================================
+          16. КНОПКА ВОЗВРАТА НАВЕРХ (FLOATING BACK TO TOP BUTTON)
+         ========================================================================= */}
+      <AnimatePresence>
+        {showScrollTop && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.5, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.5, y: 20 }}
+            transition={{ duration: 0.3 }}
+            onClick={scrollToTop}
+            className="fixed bottom-20 md:bottom-8 right-5 z-50 p-3.5 rounded-2xl bg-[#0a0a0f]/90 backdrop-blur-xl border border-[#d4af37]/60 text-[#f6e05e] hover:bg-gradient-to-r hover:from-[#f6e05e] hover:to-[#d4af37] hover:text-black shadow-[0_4px_25px_rgba(212,175,55,0.35)] hover:shadow-[0_0_30px_rgba(246,224,94,0.6)] transition-all duration-300 hover:scale-110 active:scale-95 group flex items-center justify-center"
+            aria-label="Do góry"
+            title="Przewiń do góry"
+          >
+            <ArrowUp className="w-5 h-5 group-hover:-translate-y-0.5 transition-transform duration-300" />
+          </motion.button>
+        )}
+      </AnimatePresence>
 
     </div>
   );
