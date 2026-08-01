@@ -1,0 +1,6 @@
+{
+  "name": "Citroen C4 Picasso - Ogłoszenie Sprzedaży",
+  "description": "Eskluzywna strona ogłoszeniowa dla Citroena C4 Picasso 2007 (1.6 HDI, 274 000 km).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

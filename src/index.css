@@ -1,0 +1,363 @@
+@import "tailwindcss";
+
+:root {
+  /* Цветовые переменные CSS (для удобной настройки) */
+  --bg-main: #050608;
+  --bg-footer: #020304;
+  --gold-primary: #d4af37;
+  --gold-light: #f6e05e;
+  --gold-dark: #b8860b;
+  --gold-glow: #c49b3f;
+  --glass-bg: rgba(255, 255, 255, 0.035);
+  --glass-border: rgba(255, 215, 0, 0.2);
+  --glass-blur: 16px;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-main);
+  color: #e2e8f0;
+  overflow-x: hidden;
+}
+
+/* =========================================================================
+   РОСКОШНЫЙ МНОГОСЛОЙНЫЙ ДИНАМИЧЕСКИЙ ФОН (LUXURY MULTI-LAYER BACKGROUND)
+   ========================================================================= */
+
+/* 1. Глубокий переливающийся меш-градиент */
+@keyframes bgMeshShift {
+  0% {
+    background-position: 0% 0%, 100% 100%, 50% 10%, 20% 80%;
+  }
+  33% {
+    background-position: 100% 50%, 0% 50%, 80% 60%, 80% 20%;
+  }
+  66% {
+    background-position: 50% 100%, 50% 0%, 10% 90%, 0% 30%;
+  }
+  100% {
+    background-position: 0% 0%, 100% 100%, 50% 10%, 20% 80%;
+  }
+}
+
+.lux-bg-mesh {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: 
+    radial-gradient(circle at 15% 20%, rgba(212, 175, 55, 0.16) 0%, transparent 45%),
+    radial-gradient(circle at 85% 65%, rgba(184, 134, 11, 0.14) 0%, transparent 50%),
+    radial-gradient(circle at 50% 40%, rgba(30, 41, 59, 0.4) 0%, transparent 60%),
+    radial-gradient(circle at 80% 15%, rgba(246, 224, 94, 0.08) 0%, transparent 40%),
+    linear-gradient(180deg, #050608 0%, #0a0c12 50%, #040507 100%);
+  background-size: 160% 160%, 160% 160%, 140% 140%, 150% 150%, 100% 100%;
+  animation: bgMeshShift 24s ease-in-out infinite alternate;
+}
+
+/* 2. Анимированные световые лучи автосалона (Spotlight Beams) */
+@keyframes lightBeamSweep {
+  0% {
+    transform: rotate(-35deg) translateY(-10%) translateX(-10%);
+    opacity: 0.15;
+  }
+  50% {
+    transform: rotate(-30deg) translateY(5%) translateX(10%);
+    opacity: 0.3;
+  }
+  100% {
+    transform: rotate(-35deg) translateY(-10%) translateX(-10%);
+    opacity: 0.15;
+  }
+}
+
+.lux-light-beams {
+  position: fixed;
+  inset: -50%;
+  pointer-events: none;
+  z-index: 0;
+  background: repeating-linear-gradient(
+    110deg,
+    transparent 0px,
+    transparent 120px,
+    rgba(212, 175, 55, 0.03) 120px,
+    rgba(212, 175, 55, 0.03) 240px,
+    transparent 240px,
+    transparent 400px,
+    rgba(255, 255, 255, 0.02) 400px,
+    rgba(255, 255, 255, 0.02) 500px
+  );
+  animation: lightBeamSweep 18s ease-in-out infinite;
+  mix-blend-mode: screen;
+}
+
+/* 3. Премиальная геометрическая сетка (Hex/Matrix Pattern) */
+.lux-hex-grid {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image: 
+    radial-gradient(circle, rgba(212, 175, 55, 0.12) 1px, transparent 1px),
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 40px 40px, 80px 80px, 80px 80px;
+  mask-image: radial-gradient(ellipse at center, black 35%, rgba(0, 0, 0, 0.3) 70%, transparent 95%);
+}
+
+/* 4. Плавающие живые орбы свечения */
+@keyframes floatOrb1 {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.22; }
+  50% { transform: translate(100px, -80px) scale(1.3); opacity: 0.35; }
+}
+
+@keyframes floatOrb2 {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.15; }
+  50% { transform: translate(-90px, 110px) scale(1.35); opacity: 0.28; }
+}
+
+@keyframes floatOrb3 {
+  0%, 100% { transform: translate(0, 0) scale(1.1); opacity: 0.12; }
+  50% { transform: translate(70px, 90px) scale(0.85); opacity: 0.25; }
+}
+
+.lux-orb-1 {
+  position: absolute;
+  top: 5%;
+  left: 15%;
+  width: 650px;
+  height: 650px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.28) 0%, rgba(184, 134, 11, 0) 70%);
+  animation: floatOrb1 20s ease-in-out infinite;
+  pointer-events: none;
+  filter: blur(40px);
+}
+
+.lux-orb-2 {
+  position: absolute;
+  top: 48%;
+  right: 10%;
+  width: 700px;
+  height: 700px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(246, 224, 94, 0.2) 0%, rgba(10, 12, 18, 0) 70%);
+  animation: floatOrb2 25s ease-in-out infinite;
+  pointer-events: none;
+  filter: blur(50px);
+}
+
+.lux-orb-3 {
+  position: absolute;
+  top: 80%;
+  left: 20%;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.22) 0%, rgba(5, 6, 8, 0) 70%);
+  animation: floatOrb3 22s ease-in-out infinite;
+  pointer-events: none;
+  filter: blur(45px);
+}
+
+/* 5. Эффект затемнения по краям (Vignette) */
+.lux-vignette {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(circle at center, transparent 40%, rgba(2, 3, 4, 0.75) 100%);
+}
+
+/* 6. Легкие плавающие золотые частицы (Bokeh Dust) */
+@keyframes floatParticle {
+  0% {
+    transform: translateY(0) scale(0.8);
+    opacity: 0.1;
+  }
+  50% {
+    opacity: 0.7;
+    transform: translateY(-100px) scale(1.3);
+  }
+  100% {
+    transform: translateY(-200px) scale(0.8);
+    opacity: 0;
+  }
+}
+
+.lux-particle {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, #f6e05e 0%, #d4af37 60%, transparent 100%);
+  pointer-events: none;
+  box-shadow: 0 0 12px rgba(212, 175, 55, 0.8);
+  animation: floatParticle 12s linear infinite;
+}
+
+/* =========================================================================
+   КРАСИВЫЙ АНИМИРОВАННЫЙ ЛОГОТИП (citroenc4picasso.pl)
+   ========================================================================= */
+
+@keyframes goldShimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.gold-shimmer-text {
+  background: linear-gradient(
+    90deg, 
+    #d4af37 0%, 
+    #fff5c0 25%, 
+    #f6e05e 50%, 
+    #b8860b 75%, 
+    #d4af37 100%
+  );
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: goldShimmer 6s linear infinite;
+}
+
+/* Скрытие скроллбара для адаптивных горизонтальных списков */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Предотвращение горизонтального сдвига на ультра-узких устройствах */
+html, body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Стилизация заголовков */
+.font-display {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+.heading-h1 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(2.8rem, 8vw, 5.5rem);
+  font-weight: 700;
+  font-style: normal;
+  background: linear-gradient(135deg, #f6e05e, #d4af37, #b8860b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: 2px;
+  line-height: 1.1;
+}
+
+.heading-h2 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(1.8rem, 5vw, 3rem);
+  font-weight: 700;
+  font-style: normal;
+  background: linear-gradient(135deg, #f6e05e, #d4af37, #b8860b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: 1.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Декоративные золотые линии до и после H2 */
+.heading-h2-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.heading-h2-container::before,
+.heading-h2-container::after {
+  content: "";
+  flex: 1;
+  max-width: 140px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #d4af37, transparent);
+}
+
+/* Стекло (Glassmorphism) */
+.glass-card {
+  background: rgba(255, 255, 255, 0.035);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 215, 0, 0.18);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+  border-color: rgba(255, 215, 0, 0.4);
+  box-shadow: 0 12px 40px 0 rgba(212, 175, 55, 0.18);
+  transform: translateY(-3px);
+}
+
+/* Pulsating CTA button effect */
+.cta-button {
+  background: linear-gradient(135deg, #d4af37, #f6e05e, #b8860b);
+  color: #000;
+  font-weight: 700;
+  border: none;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.cta-button:hover {
+  animation: pulse-gold 1.5s infinite;
+  transform: translateY(-2px);
+  box-shadow: 0 0 30px rgba(212, 175, 55, 0.7);
+}
+
+@keyframes pulse-gold {
+  0% {
+    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 18px rgba(212, 175, 55, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0);
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0a0a0f;
+}
+::-webkit-scrollbar-thumb {
+  background: #2a2a35;
+  border-radius: 4px;
+  border: 1px solid rgba(212, 175, 55, 0.2);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #d4af37;
+}
+
+/* Keyframe animations for scroll reveal */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.8s ease-out forwards;
+}
+
