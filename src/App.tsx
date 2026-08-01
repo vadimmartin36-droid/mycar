@@ -429,15 +429,12 @@ export default function App() {
             transition={{ duration: 0.8 }}
             className="lg:col-span-6 space-y-6 text-left"
           >
-            {/* Бейдж состояния */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#d4af37]/10 border border-[#d4af37]/30 text-[#f6e05e] text-xs sm:text-sm font-semibold uppercase tracking-wider">
-              <span>Oferta Prywatna • Stan Idealny</span>
-            </div>
-
             {/* Главное название H1 */}
-            <h1 className="heading-h1">
-              {CAR_CONFIG.brand} {CAR_CONFIG.model}
-            </h1>
+            <div>
+              <h1 className="heading-h1">
+                {CAR_CONFIG.brand} <span className="font-extrabold">{CAR_CONFIG.model}</span>
+              </h1>
+            </div>
 
             {/* Подзаголовок с важными характеристиками */}
             <p className="text-gray-300 text-lg sm:text-xl font-light leading-relaxed">
@@ -457,30 +454,10 @@ export default function App() {
                   <span className="text-sm text-gray-400 font-medium">{CAR_CONFIG.priceEUR}</span>
                 </div>
               </div>
-              <div className="flex items-center gap-2 text-xs font-semibold text-[#d4af37] bg-[#d4af37]/10 px-3 py-1.5 rounded-lg border border-[#d4af37]/20">
-                <Award className="w-4 h-4" />
-                <span>Gotowy do drogi</span>
-              </div>
+
             </div>
 
-            {/* Кнопки призыва к действию (CTA) */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
-              <button
-                onClick={() => setIsTestDriveOpen(true)}
-                className="cta-button px-8 py-4 rounded-xl font-bold text-base shadow-xl flex items-center justify-center gap-3 cursor-pointer group"
-              >
-                <Calendar className="w-5 h-5 text-black group-hover:scale-110 transition-transform" />
-                <span>Umów jazdę próbną</span>
-              </button>
 
-              <a
-                href="#kontakt"
-                className="px-6 py-4 rounded-xl glass-card font-semibold text-base text-gray-100 hover:text-[#d4af37] flex items-center justify-center gap-3 transition-all border border-white/10 hover:border-[#d4af37]/40"
-              >
-                <Send className="w-5 h-5 text-[#d4af37]" />
-                <span>Napisz: Telegram / WA / FB</span>
-              </a>
-            </div>
 
             {/* Быстрая строка фактов */}
             <div className="grid grid-cols-3 gap-3 pt-4 border-t border-white/10 text-center sm:text-left">
@@ -604,7 +581,7 @@ export default function App() {
         {/* Заголовок H2 с декоративными золотыми линиями */}
         <div className="heading-h2-container">
           <h2 className="heading-h2">
-            Status & Najważniejsze Cechy
+            Kondycja i formalności
           </h2>
         </div>
 
@@ -614,41 +591,64 @@ export default function App() {
 
         {/* Сетка из 6 стеклянных карточек */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {CAR_CONFIG.keySpecs.map((spec, index) => (
-            <motion.div
-              key={spec.id}
-              initial={{ opacity: 0, y: 25 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="glass-card p-6 rounded-2xl relative group hover:border-[#d4af37]/50 transition-all flex flex-col justify-between"
-            >
-              <div>
-                {/* Шапка карточки */}
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-3xl p-2.5 rounded-xl bg-white/5 border border-white/10 group-hover:bg-[#d4af37]/10 transition-colors">
-                    {spec.icon}
-                  </span>
-                  <span className="text-xs font-semibold px-3 py-1 rounded-full bg-[#d4af37]/15 text-[#f6e05e] border border-[#d4af37]/30">
-                    {spec.badge}
-                  </span>
+          {CAR_CONFIG.keySpecs.map((spec, index) => {
+            const isWarning = spec.badgeType === 'warning';
+            return (
+              <motion.div
+                key={spec.id}
+                initial={{ opacity: 0, y: 25 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className={`glass-card p-6 rounded-2xl relative group transition-all flex flex-col justify-between ${
+                  isWarning
+                    ? 'border-amber-500/30 bg-amber-950/10 hover:border-amber-500/60'
+                    : 'hover:border-[#d4af37]/50'
+                }`}
+              >
+                <div>
+                  {/* Шапка карточки */}
+                  <div className="flex items-center justify-between mb-4">
+                    <span className={`text-3xl p-2.5 rounded-xl border transition-colors ${
+                      isWarning
+                        ? 'bg-amber-500/10 border-amber-500/20 text-amber-300'
+                        : 'bg-white/5 border-white/10 group-hover:bg-[#d4af37]/10'
+                    }`}>
+                      {spec.icon}
+                    </span>
+                    <span className={`text-xs font-semibold px-3 py-1 rounded-full border ${
+                      isWarning
+                        ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                        : 'bg-[#d4af37]/15 text-[#f6e05e] border-[#d4af37]/30'
+                    }`}>
+                      {spec.badge}
+                    </span>
+                  </div>
+
+                  {/* Заголовок и значение */}
+                  <h3 className="text-gray-400 text-xs uppercase tracking-widest font-medium mb-1">
+                    {spec.title}
+                  </h3>
+                  <p className={`text-xl font-bold mb-2 transition-colors ${
+                    isWarning
+                      ? 'text-amber-200 group-hover:text-amber-300'
+                      : 'text-white group-hover:text-[#f6e05e]'
+                  }`}>
+                    {spec.value}
+                  </p>
                 </div>
 
-                {/* Заголовок и значение */}
-                <h3 className="text-gray-400 text-xs uppercase tracking-widest font-medium mb-1">
-                  {spec.title}
-                </h3>
-                <p className="text-xl font-bold text-white mb-2 group-hover:text-[#f6e05e] transition-colors">
-                  {spec.value}
+                {/* Описание внизу */}
+                <p className={`text-xs font-light border-t pt-3 mt-2 ${
+                  isWarning
+                    ? 'text-amber-200/80 border-amber-500/20'
+                    : 'text-gray-400 border-white/5'
+                }`}>
+                  {spec.subtext}
                 </p>
-              </div>
-
-              {/* Описание внизу */}
-              <p className="text-xs text-gray-400 font-light border-t border-white/5 pt-3 mt-2">
-                {spec.subtext}
-              </p>
-            </motion.div>
-          ))}
+              </motion.div>
+            );
+          })}
         </div>
       </section>
 

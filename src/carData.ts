@@ -19,9 +19,9 @@ export const CAR_CONFIG = {
   engine: "1.6 HDi (109 KM / 80 kW)",
   mileage: "274 000 km",
   mileageNum: 274000,
-  pricePLN: "9 999 PLN",
-  priceEUR: "~2 300 EUR",
-  location: "Warszawa, Mazowieckie",
+  pricePLN: "8 999 zł",
+  priceEUR: "~2 100 EUR",
+  location: "Łódź, Łódzkie",
   vin: "VF7UD9HZC45892104",
   color: "Złoty Metallic (Champagne Gold)",
   transmission: "Manualna (5-biegowa)",
@@ -46,7 +46,7 @@ export const CAR_CONFIG = {
     whatsappUrl: "https://wa.me/48500000000",
     facebookUrl: "https://m.me/citroenc4picasso",
     email: "kontakt@citroenc4picasso.pl",
-    city: "Warszawa, Mazowieckie",
+    city: "Łódź, Łódzkie",
     workingHours: "Poniedziałek - Niedziela: 08:00 - 21:00",
     olxUrl: "https://www.olx.pl",
     instagramUrl: "https://www.instagram.com"
@@ -57,7 +57,7 @@ export const CAR_CONFIG = {
     {
       id: "ubezpieczenie",
       title: "Ubezpieczenie OC",
-      value: "Ważne do 11.2026",
+      value: "Ważne do 13.06.2027",
       subtext: "Opłacone w całości, przechodzi na nowego właściciela",
       icon: "🛡️",
       badge: "Ważne"
@@ -65,7 +65,7 @@ export const CAR_CONFIG = {
     {
       id: "badanie",
       title: "Badanie Techniczne",
-      value: "Ważne do 09.2026",
+      value: "Ważne do 22.12.2026",
       subtext: "Przegląd przeszło bez najmniejszych zastrzeżeń",
       icon: "📋",
       badge: "Aktualne"
@@ -81,15 +81,16 @@ export const CAR_CONFIG = {
     {
       id: "opony",
       title: "Opony i Koła",
-      value: "Komplet Zimowy + Letni",
-      subtext: "Opony letnie Michelin z 2023 r., alufelgi 16\"",
+      value: "Zalecana wymiana opon",
+      subtext: "Obecne opony kwalifikują się do wymiany. Drugi komplet kół nie wchodzi w cenę pojazdu.",
       icon: "🛞",
-      badge: "2 Komplety"
+      badge: "Do wymiany",
+      badgeType: "warning"
     },
     {
       id: "wlasciciele",
       title: "Właściciele",
-      value: "2. Właściciel w Polsce",
+      value: "3. Właściciel w Polsce",
       subtext: "Garażowany, używany prywatnie na trasach",
       icon: "👤",
       badge: "Prywatny"

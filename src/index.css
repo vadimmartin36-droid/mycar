@@ -236,30 +236,40 @@ html, body {
 
 /* Стилизация заголовков */
 .font-display {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .heading-h1 {
-  font-family: 'Playfair Display', Georgia, serif;
-  font-size: clamp(2.8rem, 8vw, 5.5rem);
-  font-weight: 700;
+  font-family: 'Montserrat', sans-serif;
+  font-size: clamp(2.8rem, 7.5vw, 5.2rem);
+  font-weight: 800;
   font-style: normal;
-  background: linear-gradient(135deg, #f6e05e, #d4af37, #b8860b);
+  background: linear-gradient(
+    110deg, 
+    #f6e05e 0%, 
+    #ffffff 22%, 
+    #d4af37 45%, 
+    #f6e05e 70%, 
+    #b8860b 100%
+  );
+  background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  letter-spacing: 2px;
-  line-height: 1.1;
+  animation: goldShimmer 7s linear infinite;
+  letter-spacing: -0.01em;
+  line-height: 1.05;
+  filter: drop-shadow(0 4px 24px rgba(212, 175, 55, 0.3));
 }
 
 .heading-h2 {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: clamp(1.8rem, 5vw, 3rem);
-  font-weight: 700;
+  font-weight: 800;
   font-style: normal;
   background: linear-gradient(135deg, #f6e05e, #d4af37, #b8860b);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  letter-spacing: 1.5px;
+  letter-spacing: 0.5px;
   display: inline-flex;
   align-items: center;
   gap: 1rem;
