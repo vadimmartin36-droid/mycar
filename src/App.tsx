@@ -272,6 +272,8 @@ export default function App() {
   const [bookingStatusMsg, setBookingStatusMsg] = useState<string | null>(null);
 
   // Синхронизация с сервером Telegram при загрузке
+  const [serverTelegramReady, setServerTelegramReady] = useState(false);
+
   useEffect(() => {
     fetch('/api/telegram/config')
       .then(res => res.json())
@@ -279,6 +281,22 @@ export default function App() {
         if (data && (data.token || data.chatId)) {
           if (data.token) setTelegramToken(data.token);
           if (data.chatId) setTelegramChatId(data.chatId);
+          setServerTelegramReady(Boolean(data.isReady || (data.token && data.chatId)));
+        } else {
+          // Если на сервере пусто, но в localStorage сохранились ключи - отправляем их на сервер
+          try {
+            const localToken = (localStorage.getItem('c4_telegram_token') || '').trim();
+            const localChatId = (localStorage.getItem('c4_telegram_chat_id') || '').trim();
+            if (localToken || localChatId) {
+              fetch('/api/telegram/config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: localToken, chatId: localChatId }),
+              })
+                .then(r => r.json())
+                .then(d => setServerTelegramReady(Boolean(d.isReady)));
+            }
+          } catch (e) {}
         }
       })
       .catch(() => {});
@@ -298,11 +316,13 @@ export default function App() {
     }
 
     try {
-      await fetch('/api/telegram/config', {
+      const res = await fetch('/api/telegram/config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token: trimmedToken, chatId: trimmedChatId }),
       });
+      const data = await res.json();
+      setServerTelegramReady(Boolean(data.isReady));
     } catch (err) {
       console.error('Błąd zapisu na serwerze:', err);
     }
@@ -483,23 +503,26 @@ export default function App() {
     setTelegramTestLoading(true);
     setTelegramTestStatus({ type: null, message: '' });
 
-    const testMsg = `🧪 <b>TEST POWIADOMIEŃ CITROEN C4 PICASSO</b>\n\n` +
-      `✅ Поздравляем! Ваш Telegram Бот успешно настроен.\n\n` +
-      `Новые заявки от покупателей и бронирования тест-драйва будут приходить прямо сюда.`;
+    // 1. Сначала жестко сохраняем на сервер
+    await saveTelegramConfig(telegramToken, telegramChatId);
 
-    const res = await sendTelegramNotification(testMsg, telegramToken, telegramChatId);
+    const testMsg = `🧪 <b>ТЕСТ УВЕДОМЛЕНИЙ CITROEN C4 PICASSO</b>\n\n` +
+      `✅ Поздравляем! Ваш сервер успешно привязан к Telegram-боту.\n\n` +
+      `Теперь на опубликованном сайте сообщения от посетителей будут автоматически отправляться в этот чат!`;
+
+    // 2. Тестируем отправку через сервер без клиентских фолбэков (как обычный посетитель сайта)
+    const res = await sendTelegramNotification(testMsg);
 
     setTelegramTestLoading(false);
     if (res.success) {
-      saveTelegramConfig(telegramToken, telegramChatId);
       setTelegramTestStatus({
         type: 'success',
-        message: '✅ Тестовое сообщение отправлено! Проверьте ваш Telegram.'
+        message: '🎉 Успех! Сообщение отправлено через сервер. Теперь на опубликованном сайте все заявки покупателей будут приходить вам в Telegram!'
       });
     } else {
       setTelegramTestStatus({
         type: 'error',
-        message: `❌ Ошибка отправки: ${res.error}`
+        message: `❌ Ошибка отправки: ${res.error || 'Проверьте токен и Chat ID'}`
       });
     }
   };
@@ -2004,6 +2027,22 @@ export default function App() {
                   <p className="text-xs text-gray-400">
                     Otrzymuj wiadomości i rezerwacje prosto do Telegramu
                   </p>
+                </div>
+              </div>
+
+              {/* Серверный статус готовности */}
+              <div className={`p-3 rounded-xl border text-xs font-semibold flex items-center justify-between gap-2 mb-4 ${
+                serverTelegramReady
+                  ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'
+                  : 'bg-amber-500/15 border-amber-500/30 text-amber-300'
+              }`}>
+                <div className="flex items-center gap-2">
+                  <span className={`w-2.5 h-2.5 rounded-full ${serverTelegramReady ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+                  <span>
+                    {serverTelegramReady
+                      ? 'Сервер готов: Заявки от посетителей сайта придут в Telegram'
+                      : 'Сервер не сохранен: Нажмите «Zapisz i Zamknij» после ввода данных'}
+                  </span>
                 </div>
               </div>
 

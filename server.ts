@@ -11,40 +11,73 @@ app.use(express.json());
 const CONFIG_FILE = path.join(process.cwd(), 'telegram_config.json');
 
 let memoryConfig = {
-  token: process.env.TELEGRAM_BOT_TOKEN || '',
-  chatId: process.env.TELEGRAM_CHAT_ID || ''
+  token: (process.env.TELEGRAM_BOT_TOKEN || '').trim(),
+  chatId: (process.env.TELEGRAM_CHAT_ID || '').trim()
 };
 
 function getTelegramConfig() {
-  if (memoryConfig.token && memoryConfig.chatId) {
-    return memoryConfig;
-  }
-  try {
-    if (fs.existsSync(CONFIG_FILE)) {
-      const data = fs.readFileSync(CONFIG_FILE, 'utf-8');
-      const parsed = JSON.parse(data);
-      if (parsed.token) memoryConfig.token = parsed.token;
-      if (parsed.chatId) memoryConfig.chatId = parsed.chatId;
+  const configPaths = [
+    path.join(process.cwd(), 'telegram_config.json'),
+    path.join(__dirname, 'telegram_config.json'),
+    path.join(__dirname, '../telegram_config.json')
+  ];
+
+  for (const configPath of configPaths) {
+    try {
+      if (fs.existsSync(configPath)) {
+        const data = fs.readFileSync(configPath, 'utf-8');
+        const parsed = JSON.parse(data);
+        if (parsed.token && !memoryConfig.token) memoryConfig.token = parsed.token.trim();
+        if (parsed.chatId && !memoryConfig.chatId) memoryConfig.chatId = parsed.chatId.trim();
+        // If file has valid credentials, override memoryConfig
+        if (parsed.token) memoryConfig.token = parsed.token.trim();
+        if (parsed.chatId) memoryConfig.chatId = parsed.chatId.trim();
+      }
+    } catch (err) {
+      console.error('Błąd odczytu telegram_config.json:', err);
     }
-  } catch (err) {
-    console.error('Błąd odczytu telegram_config.json:', err);
   }
+
+  if (!memoryConfig.token && process.env.TELEGRAM_BOT_TOKEN) {
+    memoryConfig.token = process.env.TELEGRAM_BOT_TOKEN.trim();
+  }
+  if (!memoryConfig.chatId && process.env.TELEGRAM_CHAT_ID) {
+    memoryConfig.chatId = process.env.TELEGRAM_CHAT_ID.trim();
+  }
+
   return memoryConfig;
 }
 
 function saveTelegramConfig(config: { token?: string; chatId?: string }) {
   if (config.token !== undefined && config.token.trim()) memoryConfig.token = config.token.trim();
   if (config.chatId !== undefined && config.chatId.trim()) memoryConfig.chatId = config.chatId.trim();
-  try {
-    fs.writeFileSync(CONFIG_FILE, JSON.stringify(memoryConfig, null, 2), 'utf-8');
-  } catch (err) {
-    console.error('Błąd zapisu telegram_config.json:', err);
+
+  const configPaths = [
+    path.join(process.cwd(), 'telegram_config.json'),
+    path.join(__dirname, 'telegram_config.json'),
+    path.join(__dirname, '../telegram_config.json')
+  ];
+
+  for (const configPath of configPaths) {
+    try {
+      const dir = path.dirname(configPath);
+      if (fs.existsSync(dir)) {
+        fs.writeFileSync(configPath, JSON.stringify(memoryConfig, null, 2), 'utf-8');
+      }
+    } catch (err) {
+      console.error('Błąd zapisu config file:', err);
+    }
   }
 }
 
 // API: Odczyt konfiguracji Telegram
 app.get('/api/telegram/config', (req, res) => {
-  res.json(getTelegramConfig());
+  const config = getTelegramConfig();
+  res.json({
+    token: config.token,
+    chatId: config.chatId,
+    isReady: Boolean(config.token && config.chatId)
+  });
 });
 
 // API: Zapis konfiguracji Telegram (z admina)
@@ -56,7 +89,11 @@ app.post('/api/telegram/config', (req, res) => {
     chatId: chatId !== undefined ? String(chatId).trim() : current.chatId
   };
   saveTelegramConfig(updated);
-  res.json({ success: true, config: updated });
+  res.json({
+    success: true,
+    config: updated,
+    isReady: Boolean(updated.token && updated.chatId)
+  });
 });
 
 // API: Определение Chat ID через Telegram getUpdates
