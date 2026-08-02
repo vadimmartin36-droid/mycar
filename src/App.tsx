@@ -41,7 +41,12 @@ import {
   Unlock,
   Key,
   Camera,
-  ArrowUp
+  ArrowUp,
+  Bot,
+  Loader2,
+  AlertCircle,
+  Settings,
+  HelpCircle
 } from 'lucide-react';
 import { CAR_CONFIG } from './carData';
 import { PhotoManagerModal, GalleryItem } from './components/PhotoManagerModal';
@@ -238,25 +243,247 @@ export default function App() {
     galleryFilter === 'Wszystkie' || item.category === galleryFilter
   );
 
+  // Интеграция с Telegram Ботом для получения заявок
+  const [telegramToken, setTelegramToken] = useState<string>(() => {
+    try {
+      return localStorage.getItem('c4_telegram_token') || '';
+    } catch {
+      return '';
+    }
+  });
+
+  const [telegramChatId, setTelegramChatId] = useState<string>(() => {
+    try {
+      return localStorage.getItem('c4_telegram_chat_id') || '';
+    } catch {
+      return '';
+    }
+  });
+
+  const [isTelegramModalOpen, setIsTelegramModalOpen] = useState(false);
+  const [telegramTestLoading, setTelegramTestLoading] = useState(false);
+  const [isDetectingChatId, setIsDetectingChatId] = useState(false);
+  const [telegramTestStatus, setTelegramTestStatus] = useState<{ type: 'success' | 'error' | null; message: string }>({ type: null, message: '' });
+
+  const [contactSubmitting, setContactSubmitting] = useState(false);
+  const [contactStatusMsg, setContactStatusMsg] = useState<string | null>(null);
+
+  const [bookingSubmitting, setBookingSubmitting] = useState(false);
+  const [bookingStatusMsg, setBookingStatusMsg] = useState<string | null>(null);
+
+  // Сохранение настроек Telegram
+  const saveTelegramConfig = (token: string, chatId: string) => {
+    const trimmedToken = token.trim();
+    const trimmedChatId = chatId.trim();
+    setTelegramToken(trimmedToken);
+    setTelegramChatId(trimmedChatId);
+    try {
+      localStorage.setItem('c4_telegram_token', trimmedToken);
+      localStorage.setItem('c4_telegram_chat_id', trimmedChatId);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // Функция отправки уведомления в Telegram API
+  const sendTelegramNotification = async (text: string, overrideToken?: string, overrideChatId?: string) => {
+    const token = (overrideToken !== undefined ? overrideToken : telegramToken).trim();
+    const chatId = (overrideChatId !== undefined ? overrideChatId : telegramChatId).trim();
+
+    if (!token || !chatId) {
+      return { 
+        success: false, 
+        error: 'Brak wpisanego Bot Token lub Chat ID. Skonfiguruj Telegram w panelu.' 
+      };
+    }
+
+    try {
+      const url = `https://api.telegram.org/bot${token}/sendMessage`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: text,
+          parse_mode: 'HTML',
+        }),
+      });
+
+      const data = await res.json();
+      if (data.ok) {
+        return { success: true };
+      } else {
+        let errDetails = data.description || 'Błąd Telegram API';
+        if (data.error_code === 401) {
+          errDetails = 'Неверный Bot Token (401 Unauthorized)';
+        } else if (data.error_code === 400) {
+          errDetails = `Błąd 400: ${data.description}. Убедитесь, что вы отправили /start боту в Telegram!`;
+        }
+        return { success: false, error: errDetails };
+      }
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Błąd połączenia z serwerem Telegram' };
+    }
+  };
+
+  // Автоматический поиск Chat ID через Telegram API (getUpdates)
+  const handleDetectChatId = async () => {
+    const token = telegramToken.trim();
+    if (!token) {
+      setTelegramTestStatus({
+        type: 'error',
+        message: '❌ Сначала вставьте ваш Bot Token!'
+      });
+      return;
+    }
+
+    setIsDetectingChatId(true);
+    setTelegramTestStatus({ type: null, message: '' });
+
+    try {
+      const res = await fetch(`https://api.telegram.org/bot${token}/getUpdates`);
+      const data = await res.json();
+
+      if (!data.ok) {
+        setTelegramTestStatus({
+          type: 'error',
+          message: `❌ Ошибка Telegram: ${data.description || 'Неверный Token'}`
+        });
+        setIsDetectingChatId(false);
+        return;
+      }
+
+      const updates = data.result || [];
+      if (updates.length === 0) {
+        setTelegramTestStatus({
+          type: 'error',
+          message: '⚠️ Сообщений от вас пока нет! Напишите любому тексту или нажатию /start в вашем боте в Telegram, затем нажмите эту кнопку еще раз.'
+        });
+        setIsDetectingChatId(false);
+        return;
+      }
+
+      // Находим последнее сообщение
+      const lastUpdate = updates[updates.length - 1];
+      const detectedId = lastUpdate?.message?.chat?.id || lastUpdate?.my_chat_member?.chat?.id || lastUpdate?.callback_query?.message?.chat?.id;
+
+      if (detectedId) {
+        const idStr = String(detectedId);
+        setTelegramChatId(idStr);
+        saveTelegramConfig(token, idStr);
+        setTelegramTestStatus({
+          type: 'success',
+          message: `🎉 Отлично! Ваш Chat ID найден: ${idStr}. Теперь нажмите "Wyślij wiadomość testową" для проверки!`
+        });
+      } else {
+        setTelegramTestStatus({
+          type: 'error',
+          message: '⚠️ Не удалось найти Chat ID в последних сообщениях. Отправьте боту команду /start и попробуйте снова.'
+        });
+      }
+    } catch (err: any) {
+      setTelegramTestStatus({
+        type: 'error',
+        message: `❌ Ошибка подключения: ${err.message || 'Проверьте токен'}`
+      });
+    } finally {
+      setIsDetectingChatId(false);
+    }
+  };
+
+  // Проверка соединения с Telegram из админки
+  const handleTestTelegram = async () => {
+    if (!telegramToken.trim() || !telegramChatId.trim()) {
+      setTelegramTestStatus({
+        type: 'error',
+        message: '❌ Сначала введите Bot Token и Chat ID!'
+      });
+      return;
+    }
+
+    setTelegramTestLoading(true);
+    setTelegramTestStatus({ type: null, message: '' });
+
+    const testMsg = `🧪 <b>TEST POWIADOMIEŃ CITROEN C4 PICASSO</b>\n\n` +
+      `✅ Поздравляем! Ваш Telegram Бот успешно настроен.\n\n` +
+      `Новые заявки от покупателей и бронирования тест-драйва будут приходить прямо сюда.`;
+
+    const res = await sendTelegramNotification(testMsg, telegramToken, telegramChatId);
+
+    setTelegramTestLoading(false);
+    if (res.success) {
+      saveTelegramConfig(telegramToken, telegramChatId);
+      setTelegramTestStatus({
+        type: 'success',
+        message: '✅ Тестовое сообщение отправлено! Проверьте ваш Telegram.'
+      });
+    } else {
+      setTelegramTestStatus({
+        type: 'error',
+        message: `❌ Ошибка отправки: ${res.error}`
+      });
+    }
+  };
+
   // Обработка бронирования тест-драйва
-  const handleBookingSubmit = (e: React.FormEvent) => {
+  const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setBookingSubmitting(true);
+    setBookingStatusMsg(null);
+
+    const messageText = `🏎️ <b>NOWA REZERWACJA JAZDY PRÓBNEJ</b>\n\n` +
+      `👤 <b>Imię i Nazwisko:</b> ${bookingForm.name}\n` +
+      `📞 <b>Telefon:</b> ${bookingForm.phone}\n` +
+      `📅 <b>Data:</b> ${bookingForm.date || 'Nie określono'}\n` +
+      `⏰ <b>Godzina:</b> ${bookingForm.time}\n` +
+      `📝 <b>Komentarz:</b> ${bookingForm.comment || 'Brak'}\n\n` +
+      `🚗 <i>Strona: citroenc4picasso.pl</i>`;
+
+    const result = await sendTelegramNotification(messageText);
+
+    setBookingSubmitting(false);
     setBookingSuccess(true);
+
+    if (!result.success && (telegramToken || telegramChatId)) {
+      setBookingStatusMsg(`Uwaga: ${result.error}`);
+    }
+
     setTimeout(() => {
       setBookingSuccess(false);
       setIsTestDriveOpen(false);
       setBookingForm({ name: '', phone: '', date: '', time: '12:00', comment: '' });
-    }, 3000);
+      setBookingStatusMsg(null);
+    }, 4000);
   };
 
   // Обработка сообщения
-  const handleContactSubmit = (e: React.FormEvent) => {
+  const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setContactSubmitting(true);
+    setContactStatusMsg(null);
+
+    const messageText = `✉️ <b>NOWA WIADOMOŚĆ KONTAKTOWA</b>\n\n` +
+      `👤 <b>Imię:</b> ${contactMessage.name}\n` +
+      `📞 <b>Telefon:</b> ${contactMessage.phone}\n` +
+      `💬 <b>Wiadomość:</b>\n${contactMessage.message || 'Brak treści'}\n\n` +
+      `🚗 <i>Strona: citroenc4picasso.pl</i>`;
+
+    const result = await sendTelegramNotification(messageText);
+
+    setContactSubmitting(false);
     setContactSuccess(true);
+
+    if (!result.success && (telegramToken || telegramChatId)) {
+      setContactStatusMsg(`Uwaga: ${result.error}`);
+    }
+
     setTimeout(() => {
       setContactSuccess(false);
       setContactMessage({ name: '', phone: '', email: '', message: '' });
-    }, 3500);
+      setContactStatusMsg(null);
+    }, 4500);
   };
 
   return (
@@ -1137,12 +1364,31 @@ export default function App() {
           {/* Форма отправки сообщения */}
           <div className="lg:col-span-7">
             <div className="glass-card p-8 sm:p-10 rounded-3xl border border-[#d4af37]/20 relative">
-              <h3 className="text-xl font-bold text-white mb-2 font-display">
-                Wyślij Wiadomość do Sprzedającego
-              </h3>
+              <div className="flex items-center justify-between gap-4 mb-2 flex-wrap">
+                <h3 className="text-xl font-bold text-white font-display">
+                  Wyślij Wiadomość do Sprzedającego
+                </h3>
+                {isAdmin && (
+                  <button
+                    onClick={() => setIsTelegramModalOpen(true)}
+                    className="px-3 py-1.5 rounded-xl bg-[#229ED9]/15 hover:bg-[#229ED9] text-[#229ED9] hover:text-white border border-[#229ED9]/40 text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm"
+                    title="Skonfiguruj powiadomienia w Telegramie"
+                  >
+                    <Bot className="w-3.5 h-3.5" />
+                    <span>{telegramToken ? 'Telegram OK' : 'Ustaw Telegram'}</span>
+                  </button>
+                )}
+              </div>
               <p className="text-xs text-gray-400 mb-6 font-light">
                 Zostaw swój numer — oddzwonię w ciągu 30 minut.
               </p>
+
+              {contactStatusMsg && (
+                <div className="p-3 mb-4 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-300 text-xs font-medium flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{contactStatusMsg}</span>
+                </div>
+              )}
 
               {contactSuccess ? (
                 <div className="p-6 rounded-2xl bg-[#d4af37]/15 border border-[#d4af37] text-center space-y-2">
@@ -1190,10 +1436,20 @@ export default function App() {
 
                   <button
                     type="submit"
-                    className="w-full py-4 rounded-xl cta-button font-bold text-sm flex items-center justify-center gap-2 cursor-pointer"
+                    disabled={contactSubmitting}
+                    className="w-full py-4 rounded-xl cta-button font-bold text-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                   >
-                    <Send className="w-4 h-4" />
-                    <span>Wyślij Wiadomość</span>
+                    {contactSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin text-black" />
+                        <span>Wysyłanie...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        <span>Wyślij Wiadomość</span>
+                      </>
+                    )}
                   </button>
                 </form>
               )}
@@ -1579,7 +1835,15 @@ export default function App() {
       {isAdmin && (
         <div className="fixed bottom-20 left-4 z-40 bg-[#0a0a0f]/95 backdrop-blur-md border border-[#d4af37]/60 p-2 px-3.5 rounded-full flex items-center gap-2 shadow-2xl text-xs text-[#f6e05e]">
           <ShieldCheck className="w-4 h-4 text-[#f6e05e]" />
-          <span className="font-semibold hidden sm:inline">Tryb Właściciela (Edycja)</span>
+          <span className="font-semibold hidden sm:inline">Tryb Właściciela</span>
+          <button
+            onClick={() => setIsTelegramModalOpen(true)}
+            className="px-2.5 py-1 rounded-full bg-[#229ED9]/20 text-[#229ED9] hover:bg-[#229ED9] hover:text-white transition-all text-[11px] font-bold flex items-center gap-1 border border-[#229ED9]/40"
+            title="Konfiguracja Telegram Bot"
+          >
+            <Bot className="w-3.5 h-3.5" />
+            <span>Telegram Bot</span>
+          </button>
           <button
             onClick={handleAdminLogout}
             className="ml-1 px-2.5 py-1 rounded-full bg-red-500/20 text-red-300 hover:bg-red-500 hover:text-white transition-all text-[11px] font-bold"
@@ -1627,6 +1891,160 @@ export default function App() {
           >
             <ArrowUp className="w-5 h-5 group-hover:-translate-y-0.5 transition-transform duration-300" />
           </motion.button>
+        )}
+      </AnimatePresence>
+
+      {/* =========================================================================
+          17. МОДАЛЬНОЕ ОКНО НАСТРОЙКИ TELEGRAM БОТА (TELEGRAM BOT CONFIG MODAL)
+         ========================================================================= */}
+      <AnimatePresence>
+        {isTelegramModalOpen && (
+          <div className="fixed inset-0 z-[3000] bg-black/85 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="glass-card max-w-lg w-full rounded-3xl p-6 sm:p-8 border border-[#d4af37]/40 shadow-2xl relative bg-[#0a0a0f] my-8"
+            >
+              <button
+                onClick={() => {
+                  setIsTelegramModalOpen(false);
+                  setTelegramTestStatus({ type: null, message: '' });
+                }}
+                className="absolute top-5 right-5 p-2 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 transition-all"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="flex items-center gap-3.5 mb-5">
+                <div className="w-12 h-12 rounded-2xl bg-[#229ED9]/20 border border-[#229ED9]/50 flex items-center justify-center text-[#229ED9]">
+                  <Bot className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white font-display">
+                    Telegram Powiadomienia
+                  </h3>
+                  <p className="text-xs text-gray-400">
+                    Otrzymuj wiadomości i rezerwacje prosto do Telegramu
+                  </p>
+                </div>
+              </div>
+
+              {/* Инструкция как настроить */}
+              <div className="p-4 rounded-2xl bg-white/5 border border-white/10 mb-6 text-xs text-gray-300 space-y-2.5">
+                <div className="font-bold text-[#f6e05e] flex items-center gap-1.5 text-xs">
+                  <HelpCircle className="w-4 h-4 text-[#f6e05e]" />
+                  Как сделать так, чтобы Бот присылал сообщения (за 1 минуту):
+                </div>
+                <ol className="list-decimal pl-4 space-y-2 text-gray-300 font-light">
+                  <li>
+                    <b>Вставьте Bot Token:</b> Скопируйте токен вашего бота от <code>@BotFather</code> в поле ниже.
+                  </li>
+                  <li>
+                    <b>Запустите вашего бота:</b> Найдите в Telegram имя созданного бота (например, <code>@MyCarNotifBot</code>) и нажмите в нём <b>START</b> (или отправьте любое слово <code>Привет</code>).
+                    <p className="text-[11px] text-amber-300/90 mt-0.5">⚠️ Бот не начнет отправлять сообщения, пока вы сами не напишете ему первое сообщение в Telegram!</p>
+                  </li>
+                  <li>
+                    <b>Узнайте Chat ID:</b> Вы можете нажать кнопку ниже <b>«Определить Chat ID автоматически»</b> (или узнать через бота <code>@userinfobot</code>) и вставить сюда.
+                  </li>
+                </ol>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-300 mb-1.5">
+                    1. Telegram Bot Token:
+                  </label>
+                  <input
+                    type="text"
+                    value={telegramToken}
+                    onChange={(e) => setTelegramToken(e.target.value)}
+                    placeholder="7123456789:AAE... (от @BotFather)"
+                    className="w-full px-4 py-3 rounded-xl bg-black/50 border border-white/15 text-white placeholder-gray-500 focus:outline-none focus:border-[#229ED9] text-xs font-mono"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1.5 flex-wrap gap-1">
+                    <label className="block text-xs font-semibold text-gray-300">
+                      2. Ваш Telegram Chat ID / User ID:
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleDetectChatId}
+                      disabled={isDetectingChatId || !telegramToken}
+                      className="text-[11px] text-[#229ED9] hover:text-white underline font-semibold flex items-center gap-1 disabled:opacity-40"
+                    >
+                      {isDetectingChatId ? (
+                        <>
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                          <span>Ищем Chat ID...</span>
+                        </>
+                      ) : (
+                        <span>🔍 Определить Chat ID автоматически</span>
+                      )}
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    value={telegramChatId}
+                    onChange={(e) => setTelegramChatId(e.target.value)}
+                    placeholder="123456789 (нажмите кнопку выше)"
+                    className="w-full px-4 py-3 rounded-xl bg-black/50 border border-white/15 text-white placeholder-gray-500 focus:outline-none focus:border-[#229ED9] text-xs font-mono"
+                  />
+                </div>
+
+                {/* Статус проверки */}
+                {telegramTestStatus.type && (
+                  <div className={`p-3.5 rounded-xl border text-xs font-medium flex items-start gap-2.5 ${
+                    telegramTestStatus.type === 'success'
+                      ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
+                      : 'bg-red-500/15 border-red-500/40 text-red-300'
+                  }`}>
+                    {telegramTestStatus.type === 'success' ? (
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                    ) : (
+                      <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                    )}
+                    <span className="leading-relaxed">{telegramTestStatus.message}</span>
+                  </div>
+                )}
+
+                <div className="pt-2 flex flex-col sm:flex-row gap-3">
+                  <button
+                    type="button"
+                    onClick={handleTestTelegram}
+                    disabled={telegramTestLoading}
+                    className="flex-1 py-3 px-4 rounded-xl bg-[#229ED9]/20 hover:bg-[#229ED9] text-[#229ED9] hover:text-white border border-[#229ED9]/50 font-bold text-xs transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {telegramTestLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Wysyłanie...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-3.5 h-3.5" />
+                        <span>Wyślij wiadomość testową</span>
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      saveTelegramConfig(telegramToken, telegramChatId);
+                      setIsTelegramModalOpen(false);
+                      setTelegramTestStatus({ type: null, message: '' });
+                    }}
+                    className="py-3 px-6 rounded-xl bg-gradient-to-r from-[#f6e05e] via-[#d4af37] to-[#b8860b] text-black font-bold text-xs hover:brightness-110 transition-all shadow-lg shadow-[#d4af37]/20 font-semibold"
+                  >
+                    Zapisz i Zamknij
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
 
