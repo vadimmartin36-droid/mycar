@@ -1355,113 +1355,213 @@ export default function App() {
           11. БЛОК СВЯЗИ / ЗАПИСИ (KONTAKT SECTION)
          ========================================================================= */}
       <section id="kontakt" className="py-20 px-4 sm:px-8 md:px-12 max-w-7xl mx-auto z-10 relative">
-        <div className="max-w-2xl mx-auto text-center space-y-6">
-          <span className="text-xs uppercase tracking-widest text-[#d4af37] font-semibold block">
-            Bezpośredni Kontakt
-          </span>
-          <h2 className="text-3xl sm:text-5xl font-bold font-display text-white leading-tight">
-            Zainteresowany? Porozmawiajmy.
-          </h2>
-          <p className="text-gray-300 font-light text-sm">
-            Zapraszam na oględziny i jazdę próbną w Warszawie. Skontaktuj się ze mną przez Telegram, WhatsApp, Facebook lub telefonicznie.
-          </p>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+          
+          {/* Левая колонка с контактами */}
+          <div className="lg:col-span-5 space-y-6">
+            <span className="text-xs uppercase tracking-widest text-[#d4af37] font-semibold block">
+              Bezpośredni Kontakt
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-bold font-display text-white leading-tight">
+              Zainteresowany? Porozmawiajmy.
+            </h2>
+            <p className="text-gray-300 font-light text-sm">
+              Zapraszam na oględziny i jazdę próbną w Warszawie. Skontaktuj się ze mną bezpośrednio lub napisz wiadomość przez formularz kontaktowy.
+            </p>
 
-          <div className="space-y-3 pt-2 text-left">
-            {/* Telegram Card */}
-            <a
-              href={CAR_CONFIG.seller.telegramUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-4 rounded-2xl glass-card flex items-center justify-between gap-4 group hover:border-[#229ED9]/60 hover:bg-[#229ED9]/10 transition-all duration-300"
-            >
-              <div className="flex items-center gap-3.5">
-                <div className="w-10 h-10 rounded-xl bg-[#229ED9]/20 border border-[#229ED9]/40 flex items-center justify-center text-[#229ED9] group-hover:scale-110 transition-transform">
-                  <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
-                  </svg>
+            <div className="space-y-3 pt-2">
+              {/* Telegram Card */}
+              <a
+                href={CAR_CONFIG.seller.telegramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-4 rounded-2xl glass-card flex items-center justify-between gap-4 group hover:border-[#229ED9]/60 hover:bg-[#229ED9]/10 transition-all duration-300"
+              >
+                <div className="flex items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-xl bg-[#229ED9]/20 border border-[#229ED9]/40 flex items-center justify-center text-[#229ED9] group-hover:scale-110 transition-transform">
+                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <span className="text-xs text-gray-400 block">Szybka Wiadomość</span>
+                    <span className="text-base font-bold text-white group-hover:text-[#229ED9] transition-colors">
+                      Telegram
+                    </span>
+                  </div>
+                </div>
+                <span className="px-3.5 py-1.5 rounded-lg bg-[#229ED9]/20 border border-[#229ED9]/40 text-xs font-semibold text-[#229ED9] group-hover:bg-[#229ED9] group-hover:text-white transition-all">
+                  Otwórz
+                </span>
+              </a>
+
+              {/* WhatsApp Card */}
+              <a
+                href={CAR_CONFIG.seller.whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-4 rounded-2xl glass-card flex items-center justify-between gap-4 group hover:border-[#25D366]/60 hover:bg-[#25D366]/10 transition-all duration-300"
+              >
+                <div className="flex items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-xl bg-[#25D366]/20 border border-[#25D366]/40 flex items-center justify-center text-[#25D366] group-hover:scale-110 transition-transform">
+                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                      <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984 0 1.764.459 3.486 1.333 5.003L2 22l5.129-1.341a9.96 9.96 0 004.881 1.28h.004c5.506 0 9.989-4.478 9.99-9.985A9.957 9.957 0 0012.012 2zm.004 18.256h-.003a8.27 8.27 0 01-4.218-1.156l-.302-.18-3.13.818.835-3.048-.198-.314a8.28 8.28 0 01-1.272-4.391c0-4.568 3.719-8.286 8.289-8.286 2.213 0 4.293.863 5.857 2.428a8.232 8.232 0 012.425 5.858c-.001 4.569-3.72 8.287-8.287 8.287z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <span className="text-xs text-gray-400 block">Czat 24/7</span>
+                    <span className="text-base font-bold text-white group-hover:text-[#25D366] transition-colors">
+                      WhatsApp
+                    </span>
+                  </div>
+                </div>
+                <span className="px-3.5 py-1.5 rounded-lg bg-[#25D366]/20 border border-[#25D366]/40 text-xs font-semibold text-[#25D366] group-hover:bg-[#25D366] group-hover:text-white transition-all">
+                  Otwórz
+                </span>
+              </a>
+
+              {/* Facebook Card */}
+              <a
+                href={CAR_CONFIG.seller.facebookUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-4 rounded-2xl glass-card flex items-center justify-between gap-4 group hover:border-[#1877F2]/60 hover:bg-[#1877F2]/10 transition-all duration-300"
+              >
+                <div className="flex items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-xl bg-[#1877F2]/20 border border-[#1877F2]/40 flex items-center justify-center text-[#1877F2] group-hover:scale-110 transition-transform">
+                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                      <path d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.989C18.343 21.129 22 16.99 22 12c0-5.523-4.477-10-10-10z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <span className="text-xs text-gray-400 block">Profil i Messenger</span>
+                    <span className="text-base font-bold text-white group-hover:text-[#1877F2] transition-colors">
+                      Facebook
+                    </span>
+                  </div>
+                </div>
+                <span className="px-3.5 py-1.5 rounded-lg bg-[#1877F2]/20 border border-[#1877F2]/40 text-xs font-semibold text-[#1877F2] group-hover:bg-[#1877F2] group-hover:text-white transition-all">
+                  Otwórz
+                </span>
+              </a>
+
+              <div className="p-4 rounded-2xl glass-card flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#d4af37]/20 flex items-center justify-center text-[#d4af37]">
+                  <MapPin className="w-5 h-5" />
                 </div>
                 <div>
-                  <span className="text-xs text-gray-400 block">Szybka Wiadomość</span>
-                  <span className="text-base font-bold text-white group-hover:text-[#229ED9] transition-colors">
-                    Telegram
-                  </span>
+                  <span className="text-xs text-gray-400 block">Miejsce Oględzin</span>
+                  <span className="text-sm font-bold text-[#f5f5f5]">{CAR_CONFIG.seller.city}</span>
                 </div>
               </div>
-              <span className="px-3.5 py-1.5 rounded-lg bg-[#229ED9]/20 border border-[#229ED9]/40 text-xs font-semibold text-[#229ED9] group-hover:bg-[#229ED9] group-hover:text-white transition-all">
-                Otwórz
-              </span>
-            </a>
 
-            {/* WhatsApp Card */}
-            <a
-              href={CAR_CONFIG.seller.whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-4 rounded-2xl glass-card flex items-center justify-between gap-4 group hover:border-[#25D366]/60 hover:bg-[#25D366]/10 transition-all duration-300"
-            >
-              <div className="flex items-center gap-3.5">
-                <div className="w-10 h-10 rounded-xl bg-[#25D366]/20 border border-[#25D366]/40 flex items-center justify-center text-[#25D366] group-hover:scale-110 transition-transform">
-                  <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                    <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984 0 1.764.459 3.486 1.333 5.003L2 22l5.129-1.341a9.96 9.96 0 004.881 1.28h.004c5.506 0 9.989-4.478 9.99-9.985A9.957 9.957 0 0012.012 2zm.004 18.256h-.003a8.27 8.27 0 01-4.218-1.156l-.302-.18-3.13.818.835-3.048-.198-.314a8.28 8.28 0 01-1.272-4.391c0-4.568 3.719-8.286 8.289-8.286 2.213 0 4.293.863 5.857 2.428a8.232 8.232 0 012.425 5.858c-.001 4.569-3.72 8.287-8.287 8.287z"/>
-                  </svg>
+              <div className="p-4 rounded-2xl glass-card flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#d4af37]/20 flex items-center justify-center text-[#d4af37]">
+                  <Clock className="w-5 h-5" />
                 </div>
                 <div>
-                  <span className="text-xs text-gray-400 block">Czat 24/7</span>
-                  <span className="text-base font-bold text-white group-hover:text-[#25D366] transition-colors">
-                    WhatsApp
-                  </span>
+                  <span className="text-xs text-gray-400 block">Godziny Kontaktu</span>
+                  <span className="text-sm font-bold text-[#f5f5f5]">{CAR_CONFIG.seller.workingHours}</span>
                 </div>
-              </div>
-              <span className="px-3.5 py-1.5 rounded-lg bg-[#25D366]/20 border border-[#25D366]/40 text-xs font-semibold text-[#25D366] group-hover:bg-[#25D366] group-hover:text-white transition-all">
-                Otwórz
-              </span>
-            </a>
-
-            {/* Facebook Card */}
-            <a
-              href={CAR_CONFIG.seller.facebookUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-4 rounded-2xl glass-card flex items-center justify-between gap-4 group hover:border-[#1877F2]/60 hover:bg-[#1877F2]/10 transition-all duration-300"
-            >
-              <div className="flex items-center gap-3.5">
-                <div className="w-10 h-10 rounded-xl bg-[#1877F2]/20 border border-[#1877F2]/40 flex items-center justify-center text-[#1877F2] group-hover:scale-110 transition-transform">
-                  <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                    <path d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.989C18.343 21.129 22 16.99 22 12c0-5.523-4.477-10-10-10z"/>
-                  </svg>
-                </div>
-                <div>
-                  <span className="text-xs text-gray-400 block">Profil i Messenger</span>
-                  <span className="text-base font-bold text-white group-hover:text-[#1877F2] transition-colors">
-                    Facebook
-                  </span>
-                </div>
-              </div>
-              <span className="px-3.5 py-1.5 rounded-lg bg-[#1877F2]/20 border border-[#1877F2]/40 text-xs font-semibold text-[#1877F2] group-hover:bg-[#1877F2] group-hover:text-white transition-all">
-                Otwórz
-              </span>
-            </a>
-
-            <div className="p-4 rounded-2xl glass-card flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#d4af37]/20 flex items-center justify-center text-[#d4af37]">
-                <MapPin className="w-5 h-5" />
-              </div>
-              <div>
-                <span className="text-xs text-gray-400 block">Miejsce Oględzin</span>
-                <span className="text-sm font-bold text-[#f5f5f5]">{CAR_CONFIG.seller.city}</span>
-              </div>
-            </div>
-
-            <div className="p-4 rounded-2xl glass-card flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#d4af37]/20 flex items-center justify-center text-[#d4af37]">
-                <Clock className="w-5 h-5" />
-              </div>
-              <div>
-                <span className="text-xs text-gray-400 block">Godziny Kontaktu</span>
-                <span className="text-sm font-bold text-[#f5f5f5]">{CAR_CONFIG.seller.workingHours}</span>
               </div>
             </div>
           </div>
+
+          {/* Правая колонка: Форма обратной связи */}
+          <div className="lg:col-span-7">
+            <div className="glass-card p-6 sm:p-8 rounded-3xl border border-[#d4af37]/20 relative">
+              <div className="flex items-center justify-between gap-4 mb-2 flex-wrap">
+                <h3 className="text-xl font-bold text-white font-display">
+                  Wyślij Wiadomość
+                </h3>
+                {isAdmin && (
+                  <button
+                    onClick={() => setIsTelegramModalOpen(true)}
+                    className="px-3 py-1.5 rounded-xl bg-[#229ED9]/15 hover:bg-[#229ED9] text-[#229ED9] hover:text-white border border-[#229ED9]/40 text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm"
+                    title="Skonfiguruj powiadomienia w Telegramie"
+                  >
+                    <Bot className="w-3.5 h-3.5" />
+                    <span>Telegram OK</span>
+                  </button>
+                )}
+              </div>
+              <p className="text-xs text-gray-400 mb-6 font-light">
+                Zostaw dane kontaktowe i pytanie — odpowiem najszybciej jak to możliwe.
+              </p>
+
+              {contactStatusMsg && (
+                <div className="p-3 mb-4 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-300 text-xs font-medium flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{contactStatusMsg}</span>
+                </div>
+              )}
+
+              {contactSuccess ? (
+                <div className="p-6 rounded-2xl bg-[#d4af37]/15 border border-[#d4af37] text-center space-y-2">
+                  <CheckCircle2 className="w-12 h-12 text-[#d4af37] mx-auto" />
+                  <h4 className="text-lg font-bold text-white">Dziękujemy za wiadomość!</h4>
+                  <p className="text-xs text-gray-300">Wiadomość została wysłana pomyślnie.</p>
+                </div>
+              ) : (
+                <form onSubmit={handleContactSubmit} className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Twoje Imię</label>
+                      <input 
+                        type="text" 
+                        required
+                        placeholder="np. Piotr"
+                        value={contactMessage.name}
+                        onChange={(e) => setContactMessage({ ...contactMessage, name: e.target.value })}
+                        className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-[#d4af37] transition-colors text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Numer Telefonu</label>
+                      <input 
+                        type="tel" 
+                        required
+                        placeholder="+48 ___ ___ ___"
+                        value={contactMessage.phone}
+                        onChange={(e) => setContactMessage({ ...contactMessage, phone: e.target.value })}
+                        className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-[#d4af37] transition-colors text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs text-gray-400 block mb-1">Wiadomość / Pytanie</label>
+                    <textarea 
+                      rows={4}
+                      placeholder="Dzień dobry, chciałbym dopytać o..."
+                      value={contactMessage.message}
+                      onChange={(e) => setContactMessage({ ...contactMessage, message: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-[#d4af37] transition-colors text-sm resize-none"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={contactSubmitting}
+                    className="w-full py-4 rounded-xl cta-button font-bold text-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    {contactSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin text-black" />
+                        <span>Wysyłanie...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        <span>Wyślij Wiadomość</span>
+                      </>
+                    )}
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+
         </div>
       </section>
 
