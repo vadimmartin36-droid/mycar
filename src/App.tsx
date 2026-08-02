@@ -11,6 +11,7 @@ import React, { useState, useEffect } from 'react';
 import defaultConfig from './telegramDefaultConfig.json';
 
 const defaultTelegramConfig = defaultConfig as { token: string; chatId: string };
+const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Phone, 
@@ -278,7 +279,7 @@ export default function App() {
   const [serverTelegramReady, setServerTelegramReady] = useState(false);
 
   useEffect(() => {
-    fetch('/api/telegram/config')
+    fetch(`${BACKEND_URL}/api/telegram/config`)
       .then(res => res.json())
       .then(data => {
         if (data && (data.token || data.chatId)) {
@@ -291,7 +292,7 @@ export default function App() {
             const localToken = (localStorage.getItem('c4_telegram_token') || defaultTelegramConfig.token || '').trim();
             const localChatId = (localStorage.getItem('c4_telegram_chat_id') || defaultTelegramConfig.chatId || '').trim();
             if (localToken || localChatId) {
-              fetch('/api/telegram/config', {
+              fetch(`${BACKEND_URL}/api/telegram/config`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ token: localToken, chatId: localChatId }),
@@ -319,7 +320,7 @@ export default function App() {
     }
 
     try {
-      const res = await fetch('/api/telegram/config', {
+      const res = await fetch(`${BACKEND_URL}/api/telegram/config`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token: trimmedToken, chatId: trimmedChatId }),
@@ -338,7 +339,7 @@ export default function App() {
 
     // 1. Пробуем отправить через серверный эндпоинт
     try {
-      const serverRes = await fetch('/api/telegram/send', {
+      const serverRes = await fetch(`${BACKEND_URL}/api/telegram/send`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -415,7 +416,7 @@ export default function App() {
 
     try {
       // 1. Пробуем определить через сервер
-      const serverRes = await fetch('/api/telegram/detect-chat-id', {
+      const serverRes = await fetch(`${BACKEND_URL}/api/telegram/detect-chat-id`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token }),
@@ -2042,6 +2043,27 @@ export default function App() {
                     <span className="leading-relaxed">{telegramTestStatus.message}</span>
                   </div>
                 )}
+
+                {/* Важная подсказка для Cloudflare Pages и статических сайтов */}
+                <div className="p-3.5 rounded-xl border border-sky-500/30 bg-sky-500/10 text-sky-200 text-xs font-medium space-y-1">
+                  <p className="font-bold flex items-center gap-1.5 text-sky-300">
+                    <span>☁️</span> Важно для Cloudflare Pages (Статический сайт):
+                  </p>
+                  <p className="text-[11px] leading-relaxed text-sky-100/90 font-light">
+                    Так как на Cloudflare Pages нет запущенного Node.js сервера, введённые вами токен и Chat ID сохраняются только у вас в браузере. У посетителей заявки не отправятся.
+                  </p>
+                  <p className="text-[11px] leading-relaxed text-sky-100/90 font-light pt-1">
+                    Чтобы заявки от посетителей работали, выберите один из двух вариантов:
+                  </p>
+                  <ul className="list-disc pl-4 text-[10.5px] text-sky-100/80 font-light space-y-1">
+                    <li>
+                      <b>Вариант А (Простой):</b> Откройте код вашего проекта и впишите Bot Token и Chat ID прямо в файл <code>src/telegramDefaultConfig.json</code>. После пуша в GitHub Cloudflare Pages автоматически пересоберёт работающий сайт!
+                    </li>
+                    <li>
+                      <b>Вариант Б (Full-Stack):</b> В панели управления Cloudflare Pages добавьте переменную <code>VITE_BACKEND_URL</code> со значением ссылки на ваш бэкенд (например, на Render: <code>https://ваше-приложение.onrender.com</code>).
+                    </li>
+                  </ul>
+                </div>
 
                 <div className="pt-2 flex flex-col sm:flex-row gap-3">
                   <button

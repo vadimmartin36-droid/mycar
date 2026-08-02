@@ -4,8 +4,17 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { createServer as createViteServer } from 'vite';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+let resolvedFilename = '';
+try {
+  if (typeof import.meta !== 'undefined' && import.meta.url) {
+    resolvedFilename = fileURLToPath(import.meta.url);
+  }
+} catch (e) {
+  // Fallback if import.meta is empty or throws
+}
+
+const finalFilename = resolvedFilename || (typeof __filename !== 'undefined' ? __filename : '');
+const finalDirname = typeof __dirname !== 'undefined' ? __dirname : path.dirname(finalFilename);
 
 const app = express();
 const PORT = 3000;
@@ -23,10 +32,10 @@ function getTelegramConfig() {
   const configPaths = [
     path.join(process.cwd(), 'telegram_config.json'),
     path.join(process.cwd(), 'src/telegramDefaultConfig.json'),
-    path.join(__dirname, 'telegram_config.json'),
-    path.join(__dirname, 'src/telegramDefaultConfig.json'),
-    path.join(__dirname, '../telegram_config.json'),
-    path.join(__dirname, '../src/telegramDefaultConfig.json')
+    path.join(finalDirname, 'telegram_config.json'),
+    path.join(finalDirname, 'src/telegramDefaultConfig.json'),
+    path.join(finalDirname, '../telegram_config.json'),
+    path.join(finalDirname, '../src/telegramDefaultConfig.json')
   ];
 
   for (const configPath of configPaths) {
@@ -62,8 +71,8 @@ function saveTelegramConfig(config: { token?: string; chatId?: string }) {
   const filesToWrite = [
     path.join(process.cwd(), 'telegram_config.json'),
     path.join(process.cwd(), 'src/telegramDefaultConfig.json'),
-    path.join(__dirname, 'telegram_config.json'),
-    path.join(__dirname, 'src/telegramDefaultConfig.json')
+    path.join(finalDirname, 'telegram_config.json'),
+    path.join(finalDirname, 'src/telegramDefaultConfig.json')
   ];
 
   for (const filePath of filesToWrite) {
