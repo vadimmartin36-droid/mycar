@@ -10,28 +10,33 @@ app.use(express.json());
 
 const CONFIG_FILE = path.join(process.cwd(), 'telegram_config.json');
 
+let memoryConfig = {
+  token: process.env.TELEGRAM_BOT_TOKEN || '',
+  chatId: process.env.TELEGRAM_CHAT_ID || ''
+};
+
 function getTelegramConfig() {
+  if (memoryConfig.token && memoryConfig.chatId) {
+    return memoryConfig;
+  }
   try {
     if (fs.existsSync(CONFIG_FILE)) {
       const data = fs.readFileSync(CONFIG_FILE, 'utf-8');
       const parsed = JSON.parse(data);
-      return {
-        token: parsed.token || process.env.TELEGRAM_BOT_TOKEN || '',
-        chatId: parsed.chatId || process.env.TELEGRAM_CHAT_ID || ''
-      };
+      if (parsed.token) memoryConfig.token = parsed.token;
+      if (parsed.chatId) memoryConfig.chatId = parsed.chatId;
     }
   } catch (err) {
     console.error('Błąd odczytu telegram_config.json:', err);
   }
-  return {
-    token: process.env.TELEGRAM_BOT_TOKEN || '',
-    chatId: process.env.TELEGRAM_CHAT_ID || ''
-  };
+  return memoryConfig;
 }
 
-function saveTelegramConfig(config: { token: string; chatId: string }) {
+function saveTelegramConfig(config: { token?: string; chatId?: string }) {
+  if (config.token !== undefined && config.token.trim()) memoryConfig.token = config.token.trim();
+  if (config.chatId !== undefined && config.chatId.trim()) memoryConfig.chatId = config.chatId.trim();
   try {
-    fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2), 'utf-8');
+    fs.writeFileSync(CONFIG_FILE, JSON.stringify(memoryConfig, null, 2), 'utf-8');
   } catch (err) {
     console.error('Błąd zapisu telegram_config.json:', err);
   }
@@ -138,8 +143,13 @@ app.post('/api/telegram/send', async (req, res) => {
   const { text, token: reqToken, chatId: reqChatId } = req.body || {};
   const serverConfig = getTelegramConfig();
 
-  const token = (reqToken || serverConfig.token || process.env.TELEGRAM_BOT_TOKEN || '').trim();
-  const chatId = (reqChatId || serverConfig.chatId || process.env.TELEGRAM_CHAT_ID || '').trim();
+  const token = (reqToken && String(reqToken).trim()) || serverConfig.token || (process.env.TELEGRAM_BOT_TOKEN || '').trim();
+  const chatId = (reqChatId && String(reqChatId).trim()) || serverConfig.chatId || (process.env.TELEGRAM_CHAT_ID || '').trim();
+
+  // Zapisujemy w pamięci serwera, если токен и чат id были переданы
+  if (reqToken && reqChatId) {
+    saveTelegramConfig({ token, chatId });
+  }
 
   if (!token || !chatId) {
     return res.status(400).json({

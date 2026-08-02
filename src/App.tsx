@@ -318,7 +318,11 @@ export default function App() {
       const serverRes = await fetch('/api/telegram/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, token, chatId }),
+        body: JSON.stringify({ 
+          text, 
+          token: token || undefined, 
+          chatId: chatId || undefined 
+        }),
       });
       const serverData = await serverRes.json();
       if (serverRes.ok && serverData.success) {
