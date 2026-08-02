@@ -271,8 +271,21 @@ export default function App() {
   const [bookingSubmitting, setBookingSubmitting] = useState(false);
   const [bookingStatusMsg, setBookingStatusMsg] = useState<string | null>(null);
 
-  // Сохранение настроек Telegram
-  const saveTelegramConfig = (token: string, chatId: string) => {
+  // Синхронизация с сервером Telegram при загрузке
+  useEffect(() => {
+    fetch('/api/telegram/config')
+      .then(res => res.json())
+      .then(data => {
+        if (data && (data.token || data.chatId)) {
+          if (data.token) setTelegramToken(data.token);
+          if (data.chatId) setTelegramChatId(data.chatId);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  // Сохранение настроек Telegram (в localStorage и на сервер)
+  const saveTelegramConfig = async (token: string, chatId: string) => {
     const trimmedToken = token.trim();
     const trimmedChatId = chatId.trim();
     setTelegramToken(trimmedToken);
@@ -283,13 +296,43 @@ export default function App() {
     } catch (err) {
       console.error(err);
     }
+
+    try {
+      await fetch('/api/telegram/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: trimmedToken, chatId: trimmedChatId }),
+      });
+    } catch (err) {
+      console.error('Błąd zapisu na serwerze:', err);
+    }
   };
 
-  // Функция отправки уведомления в Telegram API
+  // Функция отправки уведомления (через серверный API эндпоинт + клиентский фолбэк)
   const sendTelegramNotification = async (text: string, overrideToken?: string, overrideChatId?: string) => {
     const token = (overrideToken !== undefined ? overrideToken : telegramToken).trim();
     const chatId = (overrideChatId !== undefined ? overrideChatId : telegramChatId).trim();
 
+    // 1. Пробуем отправить через серверный эндпоинт (работает для всех посетителей опубликованного сайта)
+    try {
+      const serverRes = await fetch('/api/telegram/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, token, chatId }),
+      });
+      const serverData = await serverRes.json();
+      if (serverRes.ok && serverData.success) {
+        return { success: true };
+      }
+      if (serverData && serverData.error) {
+        // Если сервером вернулась конкретная ошибка Телеграма
+        return { success: false, error: serverData.error };
+      }
+    } catch (serverErr) {
+      console.log('Server send fallback:', serverErr);
+    }
+
+    // 2. Резервный прямой запрос к Telegram API из браузера клиента
     if (!token || !chatId) {
       return { 
         success: false, 
@@ -343,6 +386,37 @@ export default function App() {
     setTelegramTestStatus({ type: null, message: '' });
 
     try {
+      // 1. Пробуем определить через сервер
+      const serverRes = await fetch('/api/telegram/detect-chat-id', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      });
+      const serverData = await serverRes.json();
+
+      if (serverData.success && serverData.latestChatId) {
+        const idStr = String(serverData.latestChatId);
+        setTelegramChatId(idStr);
+        saveTelegramConfig(token, idStr);
+        const nameInfo = serverData.latestChat?.name ? ` (${serverData.latestChat.name})` : '';
+        setTelegramTestStatus({
+          type: 'success',
+          message: `🎉 Ваш Chat ID успешно найден: ${idStr}${nameInfo}! Сохранено.`
+        });
+        setIsDetectingChatId(false);
+        return;
+      }
+
+      if (serverData.error) {
+        setTelegramTestStatus({
+          type: 'error',
+          message: `⚠️ ${serverData.error}`
+        });
+        setIsDetectingChatId(false);
+        return;
+      }
+
+      // 2. Резервный прямой запрос к api.telegram.org из браузера
       const res = await fetch(`https://api.telegram.org/bot${token}/getUpdates`);
       const data = await res.json();
 
@@ -359,13 +433,12 @@ export default function App() {
       if (updates.length === 0) {
         setTelegramTestStatus({
           type: 'error',
-          message: '⚠️ Сообщений от вас пока нет! Напишите любому тексту или нажатию /start в вашем боте в Telegram, затем нажмите эту кнопку еще раз.'
+          message: '⚠️ Сообщений от вас пока нет! Напишите боту в Telegram команду /start или любое слово, затем нажмите эту кнопку снова.'
         });
         setIsDetectingChatId(false);
         return;
       }
 
-      // Находим последнее сообщение
       const lastUpdate = updates[updates.length - 1];
       const detectedId = lastUpdate?.message?.chat?.id || lastUpdate?.my_chat_member?.chat?.id || lastUpdate?.callback_query?.message?.chat?.id;
 
@@ -375,18 +448,18 @@ export default function App() {
         saveTelegramConfig(token, idStr);
         setTelegramTestStatus({
           type: 'success',
-          message: `🎉 Отлично! Ваш Chat ID найден: ${idStr}. Теперь нажмите "Wyślij wiadomość testową" для проверки!`
+          message: `🎉 Ваш Chat ID найден: ${idStr}. Сохранено!`
         });
       } else {
         setTelegramTestStatus({
           type: 'error',
-          message: '⚠️ Не удалось найти Chat ID в последних сообщениях. Отправьте боту команду /start и попробуйте снова.'
+          message: '⚠️ Не удалось извлечь Chat ID. Напишите боту /start в Telegram и попробуйте снова.'
         });
       }
     } catch (err: any) {
       setTelegramTestStatus({
         type: 'error',
-        message: `❌ Ошибка подключения: ${err.message || 'Проверьте токен'}`
+        message: `❌ Ошибка: ${err.message || 'Проверьте токен'}`
       });
     } finally {
       setIsDetectingChatId(false);
@@ -1931,23 +2004,33 @@ export default function App() {
               </div>
 
               {/* Инструкция как настроить */}
-              <div className="p-4 rounded-2xl bg-white/5 border border-white/10 mb-6 text-xs text-gray-300 space-y-2.5">
+              <div className="p-4 rounded-2xl bg-white/5 border border-white/10 mb-6 text-xs text-gray-300 space-y-3">
                 <div className="font-bold text-[#f6e05e] flex items-center gap-1.5 text-xs">
                   <HelpCircle className="w-4 h-4 text-[#f6e05e]" />
-                  Как сделать так, чтобы Бот присылал сообщения (за 1 минуту):
+                  Как быстро узнать свой Chat ID и подключить бота:
                 </div>
-                <ol className="list-decimal pl-4 space-y-2 text-gray-300 font-light">
-                  <li>
-                    <b>Вставьте Bot Token:</b> Скопируйте токен вашего бота от <code>@BotFather</code> в поле ниже.
-                  </li>
-                  <li>
-                    <b>Запустите вашего бота:</b> Найдите в Telegram имя созданного бота (например, <code>@MyCarNotifBot</code>) и нажмите в нём <b>START</b> (или отправьте любое слово <code>Привет</code>).
-                    <p className="text-[11px] text-amber-300/90 mt-0.5">⚠️ Бот не начнет отправлять сообщения, пока вы сами не напишете ему первое сообщение в Telegram!</p>
-                  </li>
-                  <li>
-                    <b>Узнайте Chat ID:</b> Вы можете нажать кнопку ниже <b>«Определить Chat ID автоматически»</b> (или узнать через бота <code>@userinfobot</code>) и вставить сюда.
-                  </li>
-                </ol>
+                
+                <div className="space-y-2 text-gray-300 font-light text-[12px] leading-relaxed">
+                  <div className="p-2.5 rounded-xl bg-black/40 border border-white/10 space-y-1">
+                    <p className="font-semibold text-white text-[11px] uppercase tracking-wider text-[#229ED9]">
+                      💡 Способ 1: Узнать через Telegram за 5 секунд
+                    </p>
+                    <p>
+                      Перейдите в Telegram к боту <a href="https://t.me/userinfobot" target="_blank" rel="noopener noreferrer" className="text-[#229ED9] underline font-bold">@userinfobot</a> или <a href="https://t.me/getidsbot" target="_blank" rel="noopener noreferrer" className="text-[#229ED9] underline font-bold">@getidsbot</a>. Нажмите <b>START</b> — он мгновенно напишет ваш <b>Id</b> (число из 9-10 цифр). Скопируйте его в поле «Chat ID».
+                    </p>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-black/40 border border-white/10 space-y-1">
+                    <p className="font-semibold text-white text-[11px] uppercase tracking-wider text-emerald-400">
+                      ⚡ Способ 2: Автоматическое определение
+                    </p>
+                    <ol className="list-decimal pl-4 space-y-1">
+                      <li>Вставьте ваш <b>Bot Token</b> ниже (полученный у <a href="https://t.me/BotFather" target="_blank" rel="noopener noreferrer" className="text-[#229ED9] underline font-bold">@BotFather</a>).</li>
+                      <li>Откройте вашего бота в Telegram и отправьте ему <code>/start</code> или <code>Привет</code>.</li>
+                      <li>Нажмите кнопку ниже <b>«🔍 Определить Chat ID автоматически»</b>!</li>
+                    </ol>
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-4">
