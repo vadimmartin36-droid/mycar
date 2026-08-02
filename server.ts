@@ -59,23 +59,23 @@ function saveTelegramConfig(config: { token?: string; chatId?: string }) {
   if (config.token !== undefined && config.token.trim()) memoryConfig.token = config.token.trim();
   if (config.chatId !== undefined && config.chatId.trim()) memoryConfig.chatId = config.chatId.trim();
 
-  const configPaths = [
+  const filesToWrite = [
     path.join(process.cwd(), 'telegram_config.json'),
     path.join(process.cwd(), 'src/telegramDefaultConfig.json'),
     path.join(__dirname, 'telegram_config.json'),
-    path.join(__dirname, 'src/telegramDefaultConfig.json'),
-    path.join(__dirname, '../telegram_config.json'),
-    path.join(__dirname, '../src/telegramDefaultConfig.json')
+    path.join(__dirname, 'src/telegramDefaultConfig.json')
   ];
 
-  for (const configPath of configPaths) {
+  for (const filePath of filesToWrite) {
     try {
-      const dir = path.dirname(configPath);
-      if (fs.existsSync(dir)) {
-        fs.writeFileSync(configPath, JSON.stringify(memoryConfig, null, 2), 'utf-8');
+      const dir = path.dirname(filePath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
       }
+      fs.writeFileSync(filePath, JSON.stringify(memoryConfig, null, 2), 'utf-8');
+      console.log('Saved Telegram config to:', filePath, memoryConfig);
     } catch (err) {
-      console.error('Błąd zapisu config file:', err);
+      console.error('Error saving config to file:', filePath, err);
     }
   }
 }

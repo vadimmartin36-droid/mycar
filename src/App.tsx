@@ -2034,19 +2034,30 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Серверный статус готовности */}
-              <div className={`p-3 rounded-xl border text-xs font-semibold flex items-center justify-between gap-2 mb-4 ${
-                serverTelegramReady
-                  ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'
-                  : 'bg-amber-500/15 border-amber-500/30 text-amber-300'
-              }`}>
-                <div className="flex items-center gap-2">
-                  <span className={`w-2.5 h-2.5 rounded-full ${serverTelegramReady ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
-                  <span>
-                    {serverTelegramReady
-                      ? 'Сервер готов: Заявки от посетителей сайта придут в Telegram'
-                      : 'Сервер не сохранен: Нажмите «Zapisz i Zamknij» после ввода данных'}
-                  </span>
+              {/* Серверный статус и статус для Cloudflare */}
+              <div className="space-y-2 mb-4">
+                <div className={`p-3 rounded-xl border text-xs font-semibold flex items-center justify-between gap-2 ${
+                  serverTelegramReady
+                    ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'
+                    : 'bg-amber-500/15 border-amber-500/30 text-amber-300'
+                }`}>
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2.5 h-2.5 rounded-full ${serverTelegramReady ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+                    <span>
+                      {serverTelegramReady
+                        ? 'Сервер сохранен: Токен и Chat ID привязаны к проекту'
+                        : 'Сервер не сохранен: Нажмите «Zapisz i Zamknij» после ввода данных'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-xl border border-sky-500/30 bg-sky-500/10 text-sky-200 text-xs font-medium space-y-1">
+                  <p className="font-bold flex items-center gap-1.5 text-sky-300">
+                    <span>☁️</span> Важно при публикации на Cloudflare (Cloudflare Workers / Pages):
+                  </p>
+                  <p className="text-[11px] leading-relaxed text-sky-100/90 font-light">
+                    Так как Cloudflare отдает сайт в виде чистого статического приложения без Node.js-сервера, нажмите <b>«Zapisz i Zamknij»</b> ниже. Ваш Bot Token и Chat ID автоматически встроятся в файл <code>src/telegramDefaultConfig.json</code>. После этого от любого посетителя сообщения моментально полетят вам в Telegram!
+                  </p>
                 </div>
               </div>
 
