@@ -22,8 +22,11 @@ let memoryConfig = {
 function getTelegramConfig() {
   const configPaths = [
     path.join(process.cwd(), 'telegram_config.json'),
+    path.join(process.cwd(), 'src/telegramDefaultConfig.json'),
     path.join(__dirname, 'telegram_config.json'),
-    path.join(__dirname, '../telegram_config.json')
+    path.join(__dirname, 'src/telegramDefaultConfig.json'),
+    path.join(__dirname, '../telegram_config.json'),
+    path.join(__dirname, '../src/telegramDefaultConfig.json')
   ];
 
   for (const configPath of configPaths) {
@@ -58,8 +61,11 @@ function saveTelegramConfig(config: { token?: string; chatId?: string }) {
 
   const configPaths = [
     path.join(process.cwd(), 'telegram_config.json'),
+    path.join(process.cwd(), 'src/telegramDefaultConfig.json'),
     path.join(__dirname, 'telegram_config.json'),
-    path.join(__dirname, '../telegram_config.json')
+    path.join(__dirname, 'src/telegramDefaultConfig.json'),
+    path.join(__dirname, '../telegram_config.json'),
+    path.join(__dirname, '../src/telegramDefaultConfig.json')
   ];
 
   for (const configPath of configPaths) {

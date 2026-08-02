@@ -8,6 +8,9 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import defaultConfig from './telegramDefaultConfig.json';
+
+const defaultTelegramConfig = defaultConfig as { token: string; chatId: string };
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Phone, 
@@ -246,17 +249,17 @@ export default function App() {
   // Интеграция с Telegram Ботом для получения заявок
   const [telegramToken, setTelegramToken] = useState<string>(() => {
     try {
-      return localStorage.getItem('c4_telegram_token') || '';
+      return localStorage.getItem('c4_telegram_token') || defaultTelegramConfig.token || '';
     } catch {
-      return '';
+      return defaultTelegramConfig.token || '';
     }
   });
 
   const [telegramChatId, setTelegramChatId] = useState<string>(() => {
     try {
-      return localStorage.getItem('c4_telegram_chat_id') || '';
+      return localStorage.getItem('c4_telegram_chat_id') || defaultTelegramConfig.chatId || '';
     } catch {
-      return '';
+      return defaultTelegramConfig.chatId || '';
     }
   });
 
@@ -285,8 +288,8 @@ export default function App() {
         } else {
           // Если на сервере пусто, но в localStorage сохранились ключи - отправляем их на сервер
           try {
-            const localToken = (localStorage.getItem('c4_telegram_token') || '').trim();
-            const localChatId = (localStorage.getItem('c4_telegram_chat_id') || '').trim();
+            const localToken = (localStorage.getItem('c4_telegram_token') || defaultTelegramConfig.token || '').trim();
+            const localChatId = (localStorage.getItem('c4_telegram_chat_id') || defaultTelegramConfig.chatId || '').trim();
             if (localToken || localChatId) {
               fetch('/api/telegram/config', {
                 method: 'POST',
@@ -328,12 +331,12 @@ export default function App() {
     }
   };
 
-  // Функция отправки уведомления (через серверный API эндпоинт + клиентский фолбэк)
+  // Функция отправки уведомления (через серверный API эндпоинт + прямое обращение к Telegram API для Cloudflare Pages/статических сайтов)
   const sendTelegramNotification = async (text: string, overrideToken?: string, overrideChatId?: string) => {
-    const token = (overrideToken !== undefined ? overrideToken : telegramToken).trim();
-    const chatId = (overrideChatId !== undefined ? overrideChatId : telegramChatId).trim();
+    const token = (overrideToken !== undefined ? overrideToken : (telegramToken || defaultTelegramConfig.token || '')).trim();
+    const chatId = (overrideChatId !== undefined ? overrideChatId : (telegramChatId || defaultTelegramConfig.chatId || '')).trim();
 
-    // 1. Пробуем отправить через серверный эндпоинт (работает для всех посетителей опубликованного сайта)
+    // 1. Пробуем отправить через серверный эндпоинт
     try {
       const serverRes = await fetch('/api/telegram/send', {
         method: 'POST',
@@ -344,19 +347,20 @@ export default function App() {
           chatId: chatId || undefined 
         }),
       });
-      const serverData = await serverRes.json();
-      if (serverRes.ok && serverData.success) {
-        return { success: true };
-      }
-      if (serverData && serverData.error) {
-        // Если сервером вернулась конкретная ошибка Телеграма
-        return { success: false, error: serverData.error };
+      if (serverRes.ok) {
+        const serverData = await serverRes.json();
+        if (serverData && serverData.success) {
+          return { success: true };
+        }
+        if (serverData && serverData.error) {
+          return { success: false, error: serverData.error };
+        }
       }
     } catch (serverErr) {
       console.log('Server send fallback:', serverErr);
     }
 
-    // 2. Резервный прямой запрос к Telegram API из браузера клиента
+    // 2. Прямой запрос к Telegram API из браузера (работает 100% на Cloudflare Pages и любых статических хостингах)
     if (!token || !chatId) {
       return { 
         success: false, 
