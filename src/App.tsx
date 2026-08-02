@@ -11,7 +11,6 @@ import React, { useState, useEffect } from 'react';
 import defaultConfig from './telegramDefaultConfig.json';
 
 const defaultTelegramConfig = defaultConfig as { token: string; chatId: string };
-const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Phone, 
@@ -279,7 +278,7 @@ export default function App() {
   const [serverTelegramReady, setServerTelegramReady] = useState(false);
 
   useEffect(() => {
-    fetch(`${BACKEND_URL}/api/telegram/config`)
+    fetch('/api/telegram/config')
       .then(res => res.json())
       .then(data => {
         if (data && (data.token || data.chatId)) {
@@ -292,7 +291,7 @@ export default function App() {
             const localToken = (localStorage.getItem('c4_telegram_token') || defaultTelegramConfig.token || '').trim();
             const localChatId = (localStorage.getItem('c4_telegram_chat_id') || defaultTelegramConfig.chatId || '').trim();
             if (localToken || localChatId) {
-              fetch(`${BACKEND_URL}/api/telegram/config`, {
+              fetch('/api/telegram/config', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ token: localToken, chatId: localChatId }),
@@ -320,7 +319,7 @@ export default function App() {
     }
 
     try {
-      const res = await fetch(`${BACKEND_URL}/api/telegram/config`, {
+      const res = await fetch('/api/telegram/config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token: trimmedToken, chatId: trimmedChatId }),
@@ -332,6 +331,14 @@ export default function App() {
     }
   };
 
+  // Вспомогательная функция для безопасного экранирования HTML-тегов в Telegram
+  const escapeHTML = (str: string): string => {
+    return (str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  };
+
   // Функция отправки уведомления (через серверный API эндпоинт + прямое обращение к Telegram API для Cloudflare Pages/статических сайтов)
   const sendTelegramNotification = async (text: string, overrideToken?: string, overrideChatId?: string) => {
     const token = (overrideToken !== undefined ? overrideToken : (telegramToken || defaultTelegramConfig.token || '')).trim();
@@ -339,7 +346,7 @@ export default function App() {
 
     // 1. Пробуем отправить через серверный эндпоинт
     try {
-      const serverRes = await fetch(`${BACKEND_URL}/api/telegram/send`, {
+      const serverRes = await fetch('/api/telegram/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -348,13 +355,17 @@ export default function App() {
           chatId: chatId || undefined 
         }),
       });
+
+      const serverData = await serverRes.json().catch(() => null);
+
       if (serverRes.ok) {
-        const serverData = await serverRes.json();
         if (serverData && serverData.success) {
           return { success: true };
         }
+      } else {
+        // Если сервер вернул явную ошибку (например, неверный токен или не запущен бот), выводим её пользователю
         if (serverData && serverData.error) {
-          return { success: false, error: serverData.error };
+          return { success: false, error: `Błąd serwera: ${serverData.error}` };
         }
       }
     } catch (serverErr) {
@@ -416,7 +427,7 @@ export default function App() {
 
     try {
       // 1. Пробуем определить через сервер
-      const serverRes = await fetch(`${BACKEND_URL}/api/telegram/detect-chat-id`, {
+      const serverRes = await fetch('/api/telegram/detect-chat-id', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token }),
@@ -539,11 +550,11 @@ export default function App() {
     setBookingStatusMsg(null);
 
     const messageText = `🏎️ <b>NOWA REZERWACJA JAZDY PRÓBNEJ</b>\n\n` +
-      `👤 <b>Imię i Nazwisko:</b> ${bookingForm.name}\n` +
-      `📞 <b>Telefon:</b> ${bookingForm.phone}\n` +
-      `📅 <b>Data:</b> ${bookingForm.date || 'Nie określono'}\n` +
-      `⏰ <b>Godzina:</b> ${bookingForm.time}\n` +
-      `📝 <b>Komentarz:</b> ${bookingForm.comment || 'Brak'}\n\n` +
+      `👤 <b>Imię i Nazwisko:</b> ${escapeHTML(bookingForm.name)}\n` +
+      `📞 <b>Telefon:</b> ${escapeHTML(bookingForm.phone)}\n` +
+      `📅 <b>Data:</b> ${escapeHTML(bookingForm.date) || 'Nie określono'}\n` +
+      `⏰ <b>Godzina:</b> ${escapeHTML(bookingForm.time)}\n` +
+      `📝 <b>Komentarz:</b> ${escapeHTML(bookingForm.comment || 'Brak')}\n\n` +
       `🚗 <i>Strona: citroenc4picasso.pl</i>`;
 
     const result = await sendTelegramNotification(messageText);
@@ -570,9 +581,9 @@ export default function App() {
     setContactStatusMsg(null);
 
     const messageText = `✉️ <b>NOWA WIADOMOŚĆ KONTAKTOWA</b>\n\n` +
-      `👤 <b>Imię:</b> ${contactMessage.name}\n` +
-      `📞 <b>Telefon:</b> ${contactMessage.phone}\n` +
-      `💬 <b>Wiadomość:</b>\n${contactMessage.message || 'Brak treści'}\n\n` +
+      `👤 <b>Imię:</b> ${escapeHTML(contactMessage.name)}\n` +
+      `📞 <b>Telefon:</b> ${escapeHTML(contactMessage.phone)}\n` +
+      `💬 <b>Wiadomość:</b>\n${escapeHTML(contactMessage.message || 'Brak treści')}\n\n` +
       `🚗 <i>Strona: citroenc4picasso.pl</i>`;
 
     const result = await sendTelegramNotification(messageText);
@@ -1355,18 +1366,17 @@ export default function App() {
           11. БЛОК СВЯЗИ / ЗАПИСИ (KONTAKT SECTION)
          ========================================================================= */}
       <section id="kontakt" className="py-20 px-4 sm:px-8 md:px-12 max-w-7xl mx-auto z-10 relative">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
-          {/* Левая колонка с контактами */}
           <div className="lg:col-span-5 space-y-6">
             <span className="text-xs uppercase tracking-widest text-[#d4af37] font-semibold block">
               Bezpośredni Kontakt
             </span>
-            <h2 className="text-3xl sm:text-4xl font-bold font-display text-white leading-tight">
+            <h2 className="text-3xl sm:text-5xl font-bold font-display text-white leading-tight">
               Zainteresowany? Porozmawiajmy.
             </h2>
             <p className="text-gray-300 font-light text-sm">
-              Zapraszam na oględziny i jazdę próbną w Warszawie. Skontaktuj się ze mną bezpośrednio lub napisz wiadomość przez formularz kontaktowy.
+              Zapraszam na oględziny i jazdę próbną w Warszawie. Skontaktuj się ze mną przez Telegram, WhatsApp, Facebook lub formularz.
             </p>
 
             <div className="space-y-3 pt-2">
@@ -1451,7 +1461,7 @@ export default function App() {
                 </div>
                 <div>
                   <span className="text-xs text-gray-400 block">Miejsce Oględzin</span>
-                  <span className="text-sm font-bold text-[#f5f5f5]">{CAR_CONFIG.seller.city}</span>
+                  <span className="text-sm font-bold text-white">{CAR_CONFIG.seller.city}</span>
                 </div>
               </div>
 
@@ -1461,18 +1471,18 @@ export default function App() {
                 </div>
                 <div>
                   <span className="text-xs text-gray-400 block">Godziny Kontaktu</span>
-                  <span className="text-sm font-bold text-[#f5f5f5]">{CAR_CONFIG.seller.workingHours}</span>
+                  <span className="text-sm font-bold text-white">{CAR_CONFIG.seller.workingHours}</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Правая колонка: Форма обратной связи */}
+          {/* Форма отправки сообщения */}
           <div className="lg:col-span-7">
-            <div className="glass-card p-6 sm:p-8 rounded-3xl border border-[#d4af37]/20 relative">
+            <div className="glass-card p-8 sm:p-10 rounded-3xl border border-[#d4af37]/20 relative">
               <div className="flex items-center justify-between gap-4 mb-2 flex-wrap">
                 <h3 className="text-xl font-bold text-white font-display">
-                  Wyślij Wiadomość
+                  Wyślij Wiadomość do Sprzedającego
                 </h3>
                 {isAdmin && (
                   <button
@@ -1481,12 +1491,12 @@ export default function App() {
                     title="Skonfiguruj powiadomienia w Telegramie"
                   >
                     <Bot className="w-3.5 h-3.5" />
-                    <span>Telegram OK</span>
+                    <span>{telegramToken ? 'Telegram OK' : 'Ustaw Telegram'}</span>
                   </button>
                 )}
               </div>
               <p className="text-xs text-gray-400 mb-6 font-light">
-                Zostaw dane kontaktowe i pytanie — odpowiem najszybciej jak to możliwe.
+                Zostaw swój numer — oddzwonię w ciągu 30 minut.
               </p>
 
               {contactStatusMsg && (
@@ -1500,7 +1510,7 @@ export default function App() {
                 <div className="p-6 rounded-2xl bg-[#d4af37]/15 border border-[#d4af37] text-center space-y-2">
                   <CheckCircle2 className="w-12 h-12 text-[#d4af37] mx-auto" />
                   <h4 className="text-lg font-bold text-white">Dziękujemy za wiadomość!</h4>
-                  <p className="text-xs text-gray-300">Wiadomość została wysłana pomyślnie.</p>
+                  <p className="text-xs text-gray-300">Skontaktuję się z Tobą najszybciej jak to możliwe.</p>
                 </div>
               ) : (
                 <form onSubmit={handleContactSubmit} className="space-y-4">
@@ -2036,21 +2046,19 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Серверный статус */}
-              <div className="mb-4">
-                <div className={`p-3 rounded-xl border text-xs font-semibold flex items-center justify-between gap-2 ${
-                  serverTelegramReady
-                    ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'
-                    : 'bg-amber-500/15 border-amber-500/30 text-amber-300'
-                }`}>
-                  <div className="flex items-center gap-2">
-                    <span className={`w-2.5 h-2.5 rounded-full ${serverTelegramReady ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
-                    <span>
-                      {serverTelegramReady
-                        ? 'Статус: Бот сохранен и готов к отправке'
-                        : 'Статус: Введите токен и нажмите «Zapisz i Zamknij»'}
-                    </span>
-                  </div>
+              {/* Серверный статус готовности */}
+              <div className={`p-3 rounded-xl border text-xs font-semibold flex items-center justify-between gap-2 mb-4 ${
+                serverTelegramReady
+                  ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'
+                  : 'bg-amber-500/15 border-amber-500/30 text-amber-300'
+              }`}>
+                <div className="flex items-center gap-2">
+                  <span className={`w-2.5 h-2.5 rounded-full ${serverTelegramReady ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+                  <span>
+                    {serverTelegramReady
+                      ? 'Сервер готов: Заявки от посетителей сайта придут в Telegram'
+                      : 'Сервер не сохранен: Нажмите «Zapisz i Zamknij» после ввода данных'}
+                  </span>
                 </div>
               </div>
 
@@ -2143,27 +2151,6 @@ export default function App() {
                     <span className="leading-relaxed">{telegramTestStatus.message}</span>
                   </div>
                 )}
-
-                {/* Важная подсказка для Cloudflare Pages и статических сайтов */}
-                <div className="p-3.5 rounded-xl border border-sky-500/30 bg-sky-500/10 text-sky-200 text-xs font-medium space-y-1">
-                  <p className="font-bold flex items-center gap-1.5 text-sky-300">
-                    <span>☁️</span> Важно для Cloudflare Pages (Статический сайт):
-                  </p>
-                  <p className="text-[11px] leading-relaxed text-sky-100/90 font-light">
-                    Так как на Cloudflare Pages нет запущенного Node.js сервера, введённые вами токен и Chat ID сохраняются только у вас в браузере. У посетителей заявки не отправятся.
-                  </p>
-                  <p className="text-[11px] leading-relaxed text-sky-100/90 font-light pt-1">
-                    Чтобы заявки от посетителей работали, выберите один из двух вариантов:
-                  </p>
-                  <ul className="list-disc pl-4 text-[10.5px] text-sky-100/80 font-light space-y-1">
-                    <li>
-                      <b>Вариант А (Простой):</b> Откройте код вашего проекта и впишите Bot Token и Chat ID прямо в файл <code>src/telegramDefaultConfig.json</code>. После пуша в GitHub Cloudflare Pages автоматически пересоберёт работающий сайт!
-                    </li>
-                    <li>
-                      <b>Вариант Б (Full-Stack):</b> В панели управления Cloudflare Pages добавьте переменную <code>VITE_BACKEND_URL</code> со значением ссылки на ваш бэкенд (например, на Render: <code>https://ваше-приложение.onrender.com</code>).
-                    </li>
-                  </ul>
-                </div>
 
                 <div className="pt-2 flex flex-col sm:flex-row gap-3">
                   <button

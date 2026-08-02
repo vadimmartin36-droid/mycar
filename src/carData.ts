@@ -42,7 +42,7 @@ export const CAR_CONFIG = {
   // Контактные данные продавца
   seller: {
     name: "Właściciel",
-    telegramUrl: "https://t.me/vadimmartin",
+    telegramUrl: "https://t.me/citroenc4picasso",
     whatsappUrl: "https://wa.me/48500000000",
     facebookUrl: "https://www.facebook.com/vdjvadimmartin",
     email: "kontakt@citroenc4picasso.pl",
