@@ -166,18 +166,75 @@ export default function App() {
     return CAR_CONFIG.images.hero;
   });
 
+  const syncServerGallery = async (galleryData: GalleryItem[], heroImgData: string) => {
+    try {
+      await fetch('/api/gallery', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gallery: galleryData, heroImage: heroImgData })
+      });
+    } catch (err) {
+      console.warn('Nie udało się zsynchronizować galerii z serwerem:', err);
+    }
+  };
+
   useEffect(() => {
     let active = true;
     async function loadStoredData() {
-      const idbGallery = await getIDBItem<GalleryItem[]>('citroen_custom_gallery');
-      if (active && idbGallery && Array.isArray(idbGallery)) {
-        setGallery(idbGallery);
+      let localGallery: GalleryItem[] | null = null;
+      let localHero: string | null = null;
+
+      try {
+        const idbGallery = await getIDBItem<GalleryItem[]>('citroen_custom_gallery');
+        if (idbGallery && Array.isArray(idbGallery) && idbGallery.length > 0) {
+          localGallery = idbGallery;
+        } else {
+          const lsGallery = localStorage.getItem('citroen_custom_gallery');
+          if (lsGallery) localGallery = JSON.parse(lsGallery);
+        }
+      } catch (err) {
+        console.warn('IDB gallery load error:', err);
       }
-      const idbHero = await getIDBItem<string>('citroen_custom_hero');
-      if (active && idbHero) {
-        setHeroImage(idbHero);
+
+      try {
+        const idbHero = await getIDBItem<string>('citroen_custom_hero');
+        if (idbHero) {
+          localHero = idbHero;
+        } else {
+          const lsHero = localStorage.getItem('citroen_custom_hero');
+          if (lsHero) localHero = lsHero;
+        }
+      } catch (err) {
+        console.warn('IDB hero load error:', err);
+      }
+
+      // Fetch server stored gallery
+      try {
+        const res = await fetch('/api/gallery');
+        if (res.ok) {
+          const data = await res.json();
+          if (data && Array.isArray(data.gallery) && data.gallery.length > 0) {
+            if (active) {
+              setGallery(data.gallery);
+              if (data.heroImage) setHeroImage(data.heroImage);
+            }
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn('Fetch server gallery error:', err);
+      }
+
+      // If server does not have photos yet, but this browser has uploaded local photos, publish them to server now!
+      if (localGallery && localGallery.length > 0) {
+        if (active) {
+          setGallery(localGallery);
+          if (localHero) setHeroImage(localHero);
+        }
+        await syncServerGallery(localGallery, localHero || CAR_CONFIG.images.hero);
       }
     }
+
     loadStoredData();
     return () => { active = false; };
   }, []);
@@ -191,6 +248,7 @@ export default function App() {
       // ignore
     }
     await setIDBItem('citroen_custom_gallery', newGallery);
+    await syncServerGallery(newGallery, heroImage);
   };
 
   const handleUpdateHero = async (newHero: string) => {
@@ -202,6 +260,7 @@ export default function App() {
       // ignore
     }
     await setIDBItem('citroen_custom_hero', newHero);
+    await syncServerGallery(gallery, newHero);
   };
 
   const handleResetDefaults = async () => {
@@ -216,6 +275,7 @@ export default function App() {
     }
     await removeIDBItem('citroen_custom_gallery');
     await removeIDBItem('citroen_custom_hero');
+    await syncServerGallery([], CAR_CONFIG.images.hero);
   };
 
   const handleDeleteImage = (id: string, e: React.MouseEvent) => {

@@ -10,9 +10,90 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = 3000;
 
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 const CONFIG_FILE = path.join(process.cwd(), 'telegram_config.json');
+
+// --- SERVER GALLERY PERSISTENCE ---
+let memoryGalleryConfig: { gallery: any[]; heroImage: string | null } = {
+  gallery: [],
+  heroImage: null
+};
+
+function getGalleryConfig() {
+  const configPaths = [
+    path.join(process.cwd(), 'gallery_config.json'),
+    path.join(process.cwd(), 'src/galleryDefaultConfig.json'),
+    path.join(__dirname, 'gallery_config.json'),
+    path.join(__dirname, 'src/galleryDefaultConfig.json')
+  ];
+
+  for (const p of configPaths) {
+    try {
+      if (fs.existsSync(p)) {
+        const data = fs.readFileSync(p, 'utf-8');
+        const parsed = JSON.parse(data);
+        if (parsed) {
+          if (Array.isArray(parsed.gallery)) {
+            memoryGalleryConfig.gallery = parsed.gallery;
+          }
+          if (parsed.heroImage !== undefined) {
+            memoryGalleryConfig.heroImage = parsed.heroImage;
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Błąd odczytu gallery_config.json:', err);
+    }
+  }
+  return memoryGalleryConfig;
+}
+
+function saveGalleryConfig(config: { gallery?: any[]; heroImage?: string | null }) {
+  if (config.gallery !== undefined) memoryGalleryConfig.gallery = config.gallery;
+  if (config.heroImage !== undefined) memoryGalleryConfig.heroImage = config.heroImage;
+
+  const filesToWrite = [
+    path.join(process.cwd(), 'gallery_config.json'),
+    path.join(process.cwd(), 'src/galleryDefaultConfig.json'),
+    path.join(__dirname, 'gallery_config.json'),
+    path.join(__dirname, 'src/galleryDefaultConfig.json')
+  ];
+
+  for (const filePath of filesToWrite) {
+    try {
+      const dir = path.dirname(filePath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      fs.writeFileSync(filePath, JSON.stringify(memoryGalleryConfig, null, 2), 'utf-8');
+      console.log('Zapisano galerię do pliku:', filePath);
+    } catch (err) {
+      console.error('Błąd zapisu galerii do pliku:', filePath, err);
+    }
+  }
+}
+
+// API: Odczyt galerii zdjęć z serwera
+app.get('/api/gallery', (req, res) => {
+  const config = getGalleryConfig();
+  res.json({
+    gallery: config.gallery,
+    heroImage: config.heroImage
+  });
+});
+
+// API: Zapis galerii zdjęć na serwerze
+app.post('/api/gallery', (req, res) => {
+  const { gallery, heroImage } = req.body || {};
+  saveGalleryConfig({ gallery, heroImage });
+  res.json({
+    success: true,
+    gallery: memoryGalleryConfig.gallery,
+    heroImage: memoryGalleryConfig.heroImage
+  });
+});
 
 let memoryConfig = {
   token: (process.env.TELEGRAM_BOT_TOKEN || '').trim(),
