@@ -35,11 +35,17 @@ function getGalleryConfig() {
         const data = fs.readFileSync(p, 'utf-8');
         const parsed = JSON.parse(data);
         if (parsed) {
-          if (Array.isArray(parsed.gallery)) {
+          let found = false;
+          if (Array.isArray(parsed.gallery) && parsed.gallery.length > 0) {
             memoryGalleryConfig.gallery = parsed.gallery;
+            found = true;
           }
-          if (parsed.heroImage !== undefined) {
+          if (parsed.heroImage) {
             memoryGalleryConfig.heroImage = parsed.heroImage;
+            found = true;
+          }
+          if (found) {
+            break;
           }
         }
       }

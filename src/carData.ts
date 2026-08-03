@@ -10,6 +10,15 @@ import rearImg from './assets/images/citroen_c4_rear_1785044826811.jpg';
 import trunkImg from './assets/images/citroen_c4_trunk_1785540318427.jpg';
 import dashboardImg from './assets/images/citroen_c4_dashboard_1785540332304.jpg';
 import wheelsImg from './assets/images/citroen_c4_wheels_1785540344092.jpg';
+import defaultGalleryConfig from './galleryDefaultConfig.json';
+
+const defaultGallery = (defaultGalleryConfig && Array.isArray(defaultGalleryConfig.gallery))
+  ? defaultGalleryConfig.gallery
+  : [];
+
+const defaultHero = (defaultGalleryConfig && defaultGalleryConfig.heroImage)
+  ? defaultGalleryConfig.heroImage
+  : heroImg;
 
 export const CAR_CONFIG = {
   // Основные данные автомобиля
@@ -33,13 +42,13 @@ export const CAR_CONFIG = {
   
   // Изображения автомобиля
   images: {
-    hero: heroImg,
+    hero: defaultHero,
     interior: interiorImg,
     rear: rearImg,
     trunk: trunkImg,
     dashboard: dashboardImg,
     wheels: wheelsImg,
-    gallery: []
+    gallery: defaultGallery
   },
 
   // Контактные данные продавца
