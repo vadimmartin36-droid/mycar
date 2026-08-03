@@ -37,6 +37,15 @@ body {
   overflow-x: hidden;
 }
 
+/* Scrollbar hide utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Typography Utility Classes */
 .font-syne {
   font-family: 'Syne', 'Outfit', sans-serif;

@@ -632,74 +632,97 @@ export default function App() {
       ))}
 
       {/* =========================================================================
-          2. STYLOWY HEADER & MENU NAWIGACYJNE
+          2. STYLOWY HEADER & MENU NAWIGACYJNE (citroenc4picasso.pl)
          ========================================================================= */}
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         isScrolled 
-          ? 'bg-[#050608]/90 backdrop-blur-xl border-b border-[#d4af37]/30 py-3 shadow-[0_10px_30px_rgba(0,0,0,0.8)]' 
-          : 'bg-transparent py-5 sm:py-7'
+          ? 'bg-[#050608]/95 backdrop-blur-2xl border-b border-[#d4af37]/35 py-2 sm:py-2.5 shadow-[0_12px_40px_rgba(0,0,0,0.95)]' 
+          : 'bg-gradient-to-b from-black/95 via-black/60 to-transparent py-3 sm:py-5'
       }`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 flex items-center justify-between gap-4">
           
-          {/* Logo i nazwa */}
-          <a href="#" className="flex items-center gap-3 group" onClick={() => audioSynth.playClick()}>
+          {/* Logo i Domeny: citroenc4picasso.pl */}
+          <a 
+            href="#" 
+            className="flex items-center gap-2.5 sm:gap-3 group shrink-0" 
+            onClick={() => audioSynth.playClick()}
+          >
             <div className="relative">
-              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-[#d4af37] via-[#f6e05e] to-[#b8860b] p-0.5 shadow-lg shadow-[#d4af37]/30 group-hover:scale-105 transition-transform">
-                <div className="w-full h-full bg-[#050608] rounded-[14px] flex items-center justify-center">
-                  <Car className="w-5 h-5 text-[#f6e05e]" />
+              <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-[#f6e05e] via-[#d4af37] to-[#b8860b] p-0.5 shadow-lg shadow-[#d4af37]/40 group-hover:scale-105 group-hover:shadow-[0_0_25px_rgba(212,175,55,0.7)] transition-all duration-300">
+                <div className="w-full h-full bg-[#050608] rounded-[14px] flex items-center justify-center relative overflow-hidden">
+                  <Car className="w-4 h-4 sm:w-5 sm:h-5 text-[#f6e05e] group-hover:rotate-6 transition-transform duration-300" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                 </div>
               </div>
-              <span className="absolute -top-1 -right-1 flex h-3 w-3">
+              <span className="absolute -top-1 -right-1 flex h-3 w-3 sm:h-3.5 sm:w-3.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#f6e05e] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-[#d4af37]"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 sm:h-3.5 sm:w-3.5 bg-[#d4af37] border-2 border-[#050608]"></span>
               </span>
             </div>
             
-            <div className="flex flex-col">
-              <span className="font-syne font-extrabold text-base sm:text-lg tracking-tight text-white group-hover:text-[#f6e05e] transition-colors">
-                Citroën C4 Picasso
-              </span>
-              <span className="text-[10px] uppercase tracking-widest text-[#d4af37] font-num font-bold">
-                1.6 HDi • 2007 r.
+            <div className="flex flex-col justify-center">
+              <span className="font-syne font-extrabold text-base sm:text-2xl tracking-tight gold-shimmer-text group-hover:text-[#f6e05e] transition-colors leading-none">
+                citroenc4picasso<span className="text-white font-black">.pl</span>
               </span>
             </div>
           </a>
 
-          {/* Nawigacja Desktop */}
-          <nav className="hidden md:flex items-center gap-7 text-xs font-semibold tracking-wide text-gray-300">
-            <a href="#o-samochodzie" onClick={() => audioSynth.playClick()} className="hover:text-[#f6e05e] transition-colors">O Samochodzie</a>
-            <a href="#dane-techniczne" onClick={() => audioSynth.playClick()} className="hover:text-[#f6e05e] transition-colors">Specyfikacja</a>
-            <a href="#wyposazenie" onClick={() => audioSynth.playClick()} className="hover:text-[#f6e05e] transition-colors">Wyposażenie</a>
-            <a href="#galeria" onClick={() => audioSynth.playClick()} className="hover:text-[#f6e05e] transition-colors">Galeria HD</a>
-            <a href="#serwis" onClick={() => audioSynth.playClick()} className="hover:text-[#f6e05e] transition-colors">CEPiK & Historia</a>
-            <a href="#kontakt" onClick={() => audioSynth.playClick()} className="hover:text-[#f6e05e] transition-colors">Kontakt</a>
+          {/* Desktop Navigation - Capsular Pill Menu */}
+          <nav className="hidden lg:flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#0a0d14]/80 backdrop-blur-xl border border-[#d4af37]/30 shadow-[0_8px_32px_rgba(0,0,0,0.6)] text-xs font-semibold text-gray-300 whitespace-nowrap">
+            <a 
+              href="#o-samochodzie" 
+              onClick={() => audioSynth.playClick()} 
+              className="px-3.5 py-2 rounded-full hover:text-black hover:bg-[#d4af37] transition-all duration-300 whitespace-nowrap active:scale-95"
+            >
+              O Samochodzie
+            </a>
+            <a 
+              href="#dane-techniczne" 
+              onClick={() => audioSynth.playClick()} 
+              className="px-3.5 py-2 rounded-full hover:text-black hover:bg-[#d4af37] transition-all duration-300 whitespace-nowrap active:scale-95"
+            >
+              Specyfikacja
+            </a>
+            <a 
+              href="#wyposazenie" 
+              onClick={() => audioSynth.playClick()} 
+              className="px-3.5 py-2 rounded-full hover:text-black hover:bg-[#d4af37] transition-all duration-300 whitespace-nowrap active:scale-95"
+            >
+              Wyposażenie
+            </a>
+            <a 
+              href="#galeria" 
+              onClick={() => audioSynth.playClick()} 
+              className="px-3.5 py-2 rounded-full hover:text-black hover:bg-[#d4af37] transition-all duration-300 whitespace-nowrap active:scale-95"
+            >
+              Galeria HD
+            </a>
+            <a 
+              href="#serwis" 
+              onClick={() => audioSynth.playClick()} 
+              className="px-3.5 py-2 rounded-full hover:text-black hover:bg-[#d4af37] transition-all duration-300 whitespace-nowrap active:scale-95"
+            >
+              CEPiK
+            </a>
+            <a 
+              href="#kontakt" 
+              onClick={() => audioSynth.playClick()} 
+              className="px-3.5 py-2 rounded-full hover:text-black hover:bg-[#d4af37] transition-all duration-300 whitespace-nowrap active:scale-95"
+            >
+              Kontakt
+            </a>
           </nav>
 
-          {/* Prawy panel nawigacji i przyciski akcji */}
-          <div className="flex items-center gap-2.5">
-            
-            {/* Color Theme Switcher */}
-            <button
-              onClick={() => {
-                const nextTheme = themeMood === 'gold' ? 'cyan' : themeMood === 'cyan' ? 'emerald' : 'gold';
-                setThemeMood(nextTheme);
-                document.documentElement.setAttribute('data-theme', nextTheme);
-                audioSynth.playClick();
-              }}
-              className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-gray-300 hover:text-[#f6e05e] hover:bg-white/10 transition-all hidden sm:flex items-center gap-1.5 text-xs font-semibold"
-              title="Zmień motyw kolorystyczny"
-            >
-              <Palette className="w-4 h-4 text-[#f6e05e]" />
-            </button>
-
+          {/* Right Action Buttons */}
+          <div className="flex items-center gap-2 shrink-0">
             {/* Mute Audio Button */}
             <button
               onClick={() => {
                 const muted = audioSynth.toggleMute();
                 if (!muted) audioSynth.playClick();
               }}
-              className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-gray-300 hover:text-[#f6e05e] hover:bg-white/10 transition-all hidden sm:flex items-center gap-1.5 text-xs font-semibold"
-              title={audioSynth.isMuted ? "Włącz dźwięki" : "Wycisz dźwięki"}
+              className="p-2 sm:p-2.5 rounded-2xl bg-white/5 border border-white/10 text-gray-300 hover:text-[#f6e05e] hover:bg-white/10 transition-all flex items-center gap-1.5 text-xs font-semibold"
+              title={audioSynth.isMuted ? "Włącz efekty dźwiękowe" : "Wycisz efekty dźwiękowe"}
             >
               {audioSynth.isMuted ? <VolumeX className="w-4 h-4 text-red-400" /> : <Volume2 className="w-4 h-4 text-[#f6e05e]" />}
             </button>
@@ -714,55 +737,137 @@ export default function App() {
                   setIsAdminModalOpen(true);
                 }
               }}
-              className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-gray-300 hover:text-[#f6e05e] hover:bg-white/10 transition-all text-xs font-semibold flex items-center gap-1.5"
+              className="p-2 sm:p-2.5 rounded-2xl bg-white/5 border border-white/10 text-gray-300 hover:text-[#f6e05e] hover:bg-white/10 transition-all text-xs font-semibold flex items-center gap-1.5"
               title={isAdmin ? "Otwórz Panel Właściciela" : "Zaloguj jako Właściciel (PIN)"}
             >
               {isAdmin ? <Unlock className="w-4 h-4 text-[#f6e05e]" /> : <Lock className="w-4 h-4" />}
-              <span className="hidden lg:inline">{isAdmin ? "Zarządzaj" : "Właściciel"}</span>
+              <span className="hidden xl:inline">{isAdmin ? "Zarządzaj" : "Właściciel"}</span>
             </button>
 
-            {/* CTA Jazda Próbna */}
-            <button
-              onClick={() => {
-                audioSynth.playClick();
-                setIsTestDriveOpen(true);
-              }}
-              className="px-4 py-2.5 rounded-xl cta-button text-xs font-bold tracking-wide flex items-center gap-2 shadow-lg shadow-[#d4af37]/20"
-            >
-              <Calendar className="w-3.5 h-3.5 text-black" />
-              <span className="hidden sm:inline">Jazda Próbna</span>
-            </button>
-
-            {/* Mobile Menu Hamburger */}
+            {/* Mobile Menu Dropdown Toggle */}
             <button
               onClick={() => {
                 audioSynth.playClick();
                 setMobileMenuOpen(!mobileMenuOpen);
               }}
-              className="md:hidden p-2.5 rounded-xl bg-white/5 border border-white/10 text-white"
+              className="lg:hidden px-3 py-2 rounded-2xl bg-[#d4af37]/15 border border-[#d4af37]/40 text-[#f6e05e] hover:bg-[#d4af37]/25 font-bold text-xs flex items-center gap-1.5 transition-all active:scale-95"
+              aria-label="Otwórz menu nawigacji"
             >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+              <span className="font-syne tracking-wide">Menu</span>
             </button>
-
           </div>
 
         </div>
 
-        {/* Mobile Dropdown Menu */}
+        {/* Mobile Dropdown Drawer Menu */}
         <AnimatePresence>
           {mobileMenuOpen && (
             <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="md:hidden bg-[#0a0a0f]/95 backdrop-blur-2xl border-b border-[#d4af37]/30 px-6 py-4 space-y-3 text-sm font-semibold"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.25 }}
+              className="lg:hidden bg-[#07080d]/98 backdrop-blur-3xl border-b border-[#d4af37]/40 px-6 py-6 space-y-4 shadow-[0_20px_50px_rgba(0,0,0,0.95)] max-h-[85vh] overflow-y-auto"
             >
-              <a href="#o-samochodzie" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-gray-200 border-b border-white/5">O Samochodzie</a>
-              <a href="#dane-techniczne" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-gray-200 border-b border-white/5">Specyfikacja</a>
-              <a href="#wyposazenie" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-gray-200 border-b border-white/5">Wyposażenie</a>
-              <a href="#galeria" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-gray-200 border-b border-white/5">Galeria HD</a>
-              <a href="#serwis" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-gray-200 border-b border-white/5">CEPiK & Historia</a>
-              <a href="#kontakt" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-gray-200">Kontakt</a>
+              <div className="pb-3 border-b border-white/10 flex items-center justify-between">
+                <span className="font-syne font-extrabold text-base gold-shimmer-text">citroenc4picasso.pl</span>
+                <span className="text-[10px] uppercase px-2 py-0.5 rounded bg-[#d4af37]/20 text-[#f6e05e] border border-[#d4af37]/40 font-bold font-num">
+                  Menu
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 gap-2 pt-2">
+                <a 
+                  href="#o-samochodzie" 
+                  onClick={() => { audioSynth.playClick(); setMobileMenuOpen(false); }} 
+                  className="p-3 rounded-2xl bg-white/5 border border-white/5 text-gray-200 hover:text-[#f6e05e] hover:bg-white/10 flex items-center gap-3 font-semibold text-sm transition-all"
+                >
+                  <Car className="w-4 h-4 text-[#f6e05e]" />
+                  <span>O Samochodzie</span>
+                </a>
+                <a 
+                  href="#dane-techniczne" 
+                  onClick={() => { audioSynth.playClick(); setMobileMenuOpen(false); }} 
+                  className="p-3 rounded-2xl bg-white/5 border border-white/5 text-gray-200 hover:text-[#f6e05e] hover:bg-white/10 flex items-center gap-3 font-semibold text-sm transition-all"
+                >
+                  <Gauge className="w-4 h-4 text-[#f6e05e]" />
+                  <span>Specyfikacja Techniczna</span>
+                </a>
+                <a 
+                  href="#wyposazenie" 
+                  onClick={() => { audioSynth.playClick(); setMobileMenuOpen(false); }} 
+                  className="p-3 rounded-2xl bg-white/5 border border-white/5 text-gray-200 hover:text-[#f6e05e] hover:bg-white/10 flex items-center gap-3 font-semibold text-sm transition-all"
+                >
+                  <Sparkles className="w-4 h-4 text-[#f6e05e]" />
+                  <span>Bogate Wyposażenie</span>
+                </a>
+                <a 
+                  href="#galeria" 
+                  onClick={() => { audioSynth.playClick(); setMobileMenuOpen(false); }} 
+                  className="p-3 rounded-2xl bg-white/5 border border-white/5 text-gray-200 hover:text-[#f6e05e] hover:bg-white/10 flex items-center gap-3 font-semibold text-sm transition-all"
+                >
+                  <Camera className="w-4 h-4 text-[#f6e05e]" />
+                  <span>Fotogaleria HD</span>
+                </a>
+                <a 
+                  href="#serwis" 
+                  onClick={() => { audioSynth.playClick(); setMobileMenuOpen(false); }} 
+                  className="p-3 rounded-2xl bg-white/5 border border-white/5 text-gray-200 hover:text-[#f6e05e] hover:bg-white/10 flex items-center gap-3 font-semibold text-sm transition-all"
+                >
+                  <ShieldCheck className="w-4 h-4 text-[#f6e05e]" />
+                  <span>Raport CEPiK & Historia</span>
+                </a>
+                <a 
+                  href="#kontakt" 
+                  onClick={() => { audioSynth.playClick(); setMobileMenuOpen(false); }} 
+                  className="p-3 rounded-2xl bg-white/5 border border-white/5 text-gray-200 hover:text-[#f6e05e] hover:bg-white/10 flex items-center gap-3 font-semibold text-sm transition-all"
+                >
+                  <Phone className="w-4 h-4 text-[#f6e05e]" />
+                  <span>Kontakt z Właścicielem</span>
+                </a>
+              </div>
+
+              {/* Mobile Quick Actions */}
+              <div className="pt-4 border-t border-white/10 flex flex-col gap-2.5">
+                <button
+                  onClick={() => {
+                    audioSynth.playClick();
+                    setIsTestDriveOpen(true);
+                    setMobileMenuOpen(false);
+                  }}
+                  className="w-full py-3.5 rounded-2xl cta-button text-xs font-extrabold flex items-center justify-center gap-2 text-black shadow-lg shadow-[#d4af37]/30"
+                >
+                  <Calendar className="w-4 h-4 text-black" />
+                  <span>Zarezerwuj Jazdę Próbną</span>
+                </button>
+
+                <div className="flex items-center justify-between gap-2 pt-2">
+                  <button
+                    onClick={() => {
+                      const nextTheme = themeMood === 'gold' ? 'cyan' : themeMood === 'cyan' ? 'emerald' : 'gold';
+                      setThemeMood(nextTheme);
+                      document.documentElement.setAttribute('data-theme', nextTheme);
+                      audioSynth.playClick();
+                    }}
+                    className="flex-1 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs font-semibold text-gray-300 flex items-center justify-center gap-2"
+                  >
+                    <Palette className="w-4 h-4 text-[#f6e05e]" />
+                    <span>Motyw</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      const muted = audioSynth.toggleMute();
+                      if (!muted) audioSynth.playClick();
+                    }}
+                    className="flex-1 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs font-semibold text-gray-300 flex items-center justify-center gap-2"
+                  >
+                    {audioSynth.isMuted ? <VolumeX className="w-4 h-4 text-red-400" /> : <Volume2 className="w-4 h-4 text-[#f6e05e]" />}
+                    <span>{audioSynth.isMuted ? "Wyciszony" : "Dźwięki"}</span>
+                  </button>
+                </div>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -808,11 +913,11 @@ export default function App() {
             </p>
 
             {/* Główne Przyciski Akcji */}
-            <div className="flex flex-wrap items-center gap-4 pt-2">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 pt-2">
               <a
                 href="#kontakt"
                 onClick={() => audioSynth.playClick()}
-                className="px-7 py-4 rounded-2xl cta-button font-syne font-extrabold text-sm tracking-wide flex items-center gap-2.5 shadow-xl shadow-[#d4af37]/25 text-black"
+                className="w-full sm:w-auto px-7 py-4 rounded-2xl cta-button font-syne font-extrabold text-sm tracking-wide flex items-center justify-center gap-2.5 shadow-xl shadow-[#d4af37]/25 text-black active:scale-98 transition-transform"
               >
                 <Phone className="w-4 h-4 text-black" />
                 <span>Zadzwoń do Właściciela</span>
@@ -823,9 +928,9 @@ export default function App() {
                   setHeadlightsOn(!headlightsOn);
                   audioSynth.playSwitchSound();
                 }}
-                className={`px-6 py-4 rounded-2xl border font-bold text-xs tracking-wide transition-all duration-300 flex items-center gap-2 ${
+                className={`w-full sm:w-auto px-6 py-4 rounded-2xl border font-bold text-xs tracking-wide transition-all duration-300 flex items-center justify-center gap-2 ${
                   headlightsOn 
-                    ? 'bg-[#d4af37] text-black border-[#f6e05e] shadow-lg shadow-[#d4af37]/40 scale-105'
+                    ? 'bg-[#d4af37] text-black border-[#f6e05e] shadow-lg shadow-[#d4af37]/40 scale-[1.02]'
                     : 'bg-white/5 border-white/10 text-gray-200 hover:border-[#d4af37] hover:bg-white/10'
                 }`}
               >
@@ -1405,12 +1510,12 @@ export default function App() {
          ========================================================================= */}
       <AnimatePresence>
         {isTestDriveOpen && (
-          <div className="fixed inset-0 z-[2000] bg-black/85 backdrop-blur-xl flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[2000] bg-black/85 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="glass-card max-w-md w-full rounded-3xl p-6 sm:p-8 border border-[#d4af37]/40 shadow-2xl relative bg-[#0a0a0f]"
+              className="glass-card max-w-md w-full rounded-3xl p-6 sm:p-8 border border-[#d4af37]/40 shadow-2xl relative bg-[#0a0a0f] max-h-[90vh] overflow-y-auto my-auto"
             >
               <button
                 onClick={() => {
@@ -1541,12 +1646,12 @@ export default function App() {
          ========================================================================= */}
       <AnimatePresence>
         {isAdminModalOpen && (
-          <div className="fixed inset-0 z-[3000] bg-black/85 backdrop-blur-xl flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[3000] bg-black/85 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto">
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="glass-card max-w-md w-full rounded-3xl p-6 sm:p-8 border border-[#d4af37]/40 shadow-2xl relative bg-[#0a0a0f]"
+              className="glass-card max-w-md w-full rounded-3xl p-6 sm:p-8 border border-[#d4af37]/40 shadow-2xl relative bg-[#0a0a0f] max-h-[90vh] overflow-y-auto my-auto"
             >
               <button
                 onClick={() => {
