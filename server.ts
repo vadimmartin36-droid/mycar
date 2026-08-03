@@ -2,12 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
-import { fileURLToPath } from 'url';
 import { createServer as createViteServer } from 'vite';
-
-const isESM = typeof import.meta !== 'undefined' && typeof import.meta.url === 'string';
-const _filename = isESM ? fileURLToPath(import.meta.url) : __filename;
-const _dirname = isESM ? path.dirname(_filename) : __dirname;
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -24,11 +19,7 @@ let memoryConfig = {
 function getTelegramConfig() {
   const configPaths = [
     path.join(process.cwd(), 'telegram_config.json'),
-    path.join(process.cwd(), 'src/telegramDefaultConfig.json'),
-    path.join(_dirname, 'telegram_config.json'),
-    path.join(_dirname, 'src/telegramDefaultConfig.json'),
-    path.join(_dirname, '../telegram_config.json'),
-    path.join(_dirname, '../src/telegramDefaultConfig.json')
+    path.join(process.cwd(), 'src/telegramDefaultConfig.json')
   ];
 
   for (const configPath of configPaths) {
@@ -63,11 +54,7 @@ function saveTelegramConfig(config: { token?: string; chatId?: string }) {
 
   const configPaths = [
     path.join(process.cwd(), 'telegram_config.json'),
-    path.join(process.cwd(), 'src/telegramDefaultConfig.json'),
-    path.join(_dirname, 'telegram_config.json'),
-    path.join(_dirname, 'src/telegramDefaultConfig.json'),
-    path.join(_dirname, '../telegram_config.json'),
-    path.join(_dirname, '../src/telegramDefaultConfig.json')
+    path.join(process.cwd(), 'src/telegramDefaultConfig.json')
   ];
 
   for (const configPath of configPaths) {
