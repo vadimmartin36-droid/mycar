@@ -1,16 +1,33 @@
 @import "tailwindcss";
 
 :root {
-  /* Цветовые переменные CSS (для удобной настройки) */
   --bg-main: #050608;
   --bg-footer: #020304;
   --gold-primary: #d4af37;
   --gold-light: #f6e05e;
   --gold-dark: #b8860b;
   --gold-glow: #c49b3f;
+  --cyan-accent: #06b6d4;
   --glass-bg: rgba(255, 255, 255, 0.035);
   --glass-border: rgba(255, 215, 0, 0.2);
   --glass-blur: 16px;
+}
+
+/* Background Theme Switcher Support */
+[data-theme="cyan"] {
+  --gold-primary: #06b6d4;
+  --gold-light: #67e8f9;
+  --gold-dark: #0e7490;
+  --gold-glow: #22d3ee;
+  --glass-border: rgba(6, 182, 212, 0.3);
+}
+
+[data-theme="emerald"] {
+  --gold-primary: #10b981;
+  --gold-light: #6ee7b7;
+  --gold-dark: #047857;
+  --gold-glow: #34d399;
+  --glass-border: rgba(16, 185, 129, 0.3);
 }
 
 body {
@@ -18,6 +35,19 @@ body {
   background-color: var(--bg-main);
   color: #e2e8f0;
   overflow-x: hidden;
+}
+
+/* Typography Utility Classes */
+.font-syne {
+  font-family: 'Syne', 'Outfit', sans-serif;
+}
+
+.font-num {
+  font-family: 'Space Grotesk', 'Outfit', monospace;
+}
+
+.font-display {
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
 }
 
 /* =========================================================================
@@ -80,8 +110,8 @@ body {
     110deg,
     transparent 0px,
     transparent 120px,
-    rgba(212, 175, 55, 0.03) 120px,
-    rgba(212, 175, 55, 0.03) 240px,
+    rgba(212, 175, 55, 0.035) 120px,
+    rgba(212, 175, 55, 0.035) 240px,
     transparent 240px,
     transparent 400px,
     rgba(255, 255, 255, 0.02) 400px,
@@ -98,9 +128,9 @@ body {
   pointer-events: none;
   z-index: 0;
   background-image: 
-    radial-gradient(circle, rgba(212, 175, 55, 0.12) 1px, transparent 1px),
-    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    radial-gradient(circle, rgba(212, 175, 55, 0.14) 1px, transparent 1px),
+    linear-gradient(to right, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
   background-size: 40px 40px, 80px 80px, 80px 80px;
   mask-image: radial-gradient(ellipse at center, black 35%, rgba(0, 0, 0, 0.3) 70%, transparent 95%);
 }
@@ -108,17 +138,17 @@ body {
 /* 4. Плавающие живые орбы свечения */
 @keyframes floatOrb1 {
   0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.22; }
-  50% { transform: translate(100px, -80px) scale(1.3); opacity: 0.35; }
+  50% { transform: translate(100px, -80px) scale(1.3); opacity: 0.38; }
 }
 
 @keyframes floatOrb2 {
   0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.15; }
-  50% { transform: translate(-90px, 110px) scale(1.35); opacity: 0.28; }
+  50% { transform: translate(-90px, 110px) scale(1.35); opacity: 0.32; }
 }
 
 @keyframes floatOrb3 {
   0%, 100% { transform: translate(0, 0) scale(1.1); opacity: 0.12; }
-  50% { transform: translate(70px, 90px) scale(0.85); opacity: 0.25; }
+  50% { transform: translate(70px, 90px) scale(0.85); opacity: 0.28; }
 }
 
 .lux-orb-1 {
@@ -128,7 +158,7 @@ body {
   width: 650px;
   height: 650px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(212, 175, 55, 0.28) 0%, rgba(184, 134, 11, 0) 70%);
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.3) 0%, rgba(184, 134, 11, 0) 70%);
   animation: floatOrb1 20s ease-in-out infinite;
   pointer-events: none;
   filter: blur(40px);
@@ -141,7 +171,7 @@ body {
   width: 700px;
   height: 700px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(246, 224, 94, 0.2) 0%, rgba(10, 12, 18, 0) 70%);
+  background: radial-gradient(circle, rgba(246, 224, 94, 0.22) 0%, rgba(10, 12, 18, 0) 70%);
   animation: floatOrb2 25s ease-in-out infinite;
   pointer-events: none;
   filter: blur(50px);
@@ -154,7 +184,7 @@ body {
   width: 600px;
   height: 600px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(212, 175, 55, 0.22) 0%, rgba(5, 6, 8, 0) 70%);
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.25) 0%, rgba(5, 6, 8, 0) 70%);
   animation: floatOrb3 22s ease-in-out infinite;
   pointer-events: none;
   filter: blur(45px);
@@ -219,7 +249,51 @@ body {
   animation: goldShimmer 6s linear infinite;
 }
 
-/* Скрытие скроллбара для адаптивных горизонтальных списков */
+/* Neon Glow utilities */
+.neon-glow-gold {
+  box-shadow: 0 0 25px rgba(212, 175, 55, 0.4), inset 0 0 15px rgba(246, 224, 94, 0.2);
+}
+
+.neon-border-gold {
+  border-color: rgba(246, 224, 94, 0.6);
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+}
+
+/* Headlight Light Cone Animation */
+@keyframes headlightPulse {
+  0%, 100% { opacity: 0.85; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.03); }
+}
+
+.headlight-cone-left {
+  position: absolute;
+  width: 450px;
+  height: 250px;
+  top: 35%;
+  left: 5%;
+  background: radial-gradient(ellipse at left center, rgba(255, 255, 255, 0.95) 0%, rgba(246, 224, 94, 0.7) 25%, rgba(212, 175, 55, 0.3) 60%, transparent 85%);
+  transform: rotate(-18deg);
+  filter: blur(16px);
+  pointer-events: none;
+  mix-blend-mode: screen;
+  animation: headlightPulse 3s ease-in-out infinite;
+}
+
+.headlight-cone-right {
+  position: absolute;
+  width: 450px;
+  height: 250px;
+  top: 35%;
+  right: 5%;
+  background: radial-gradient(ellipse at right center, rgba(255, 255, 255, 0.95) 0%, rgba(246, 224, 94, 0.7) 25%, rgba(212, 175, 55, 0.3) 60%, transparent 85%);
+  transform: rotate(18deg);
+  filter: blur(16px);
+  pointer-events: none;
+  mix-blend-mode: screen;
+  animation: headlightPulse 3s ease-in-out infinite 0.5s;
+}
+
+/* Hide scrollbar */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -228,20 +302,15 @@ body {
   scrollbar-width: none;
 }
 
-/* Предотвращение горизонтального сдвига на ультра-узких устройствах */
+/* Prevent horizontal overflow */
 html, body {
   max-width: 100vw;
   overflow-x: hidden;
 }
 
-/* Стилизация заголовков */
-.font-display {
-  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
-}
-
 .heading-h1 {
-  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
-  font-size: clamp(2.5rem, 7vw, 5.2rem);
+  font-family: 'Syne', 'Outfit', sans-serif;
+  font-size: clamp(2.4rem, 6.5vw, 5rem);
   font-weight: 800;
   font-style: normal;
   background: linear-gradient(
@@ -262,8 +331,8 @@ html, body {
 }
 
 .heading-h2 {
-  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
-  font-size: clamp(1.6rem, 4.5vw, 3rem);
+  font-family: 'Syne', 'Outfit', sans-serif;
+  font-size: clamp(1.6rem, 4.5vw, 2.8rem);
   font-weight: 800;
   font-style: normal;
   background: linear-gradient(135deg, #f6e05e, #d4af37, #b8860b);
@@ -275,7 +344,7 @@ html, body {
   gap: 1rem;
 }
 
-/* Декоративные золотые линии до и после H2 */
+/* Decorative gold lines around H2 */
 .heading-h2-container {
   display: flex;
   align-items: center;
@@ -294,7 +363,7 @@ html, body {
   background: linear-gradient(90deg, transparent, #d4af37, transparent);
 }
 
-/* Стекло (Glassmorphism) */
+/* Glassmorphism Cards */
 .glass-card {
   background: rgba(255, 255, 255, 0.035);
   backdrop-filter: blur(14px);
@@ -305,8 +374,8 @@ html, body {
 }
 
 .glass-card:hover {
-  border-color: rgba(255, 215, 0, 0.4);
-  box-shadow: 0 12px 40px 0 rgba(212, 175, 55, 0.18);
+  border-color: rgba(255, 215, 0, 0.45);
+  box-shadow: 0 12px 40px 0 rgba(212, 175, 55, 0.22);
   transform: translateY(-3px);
 }
 
@@ -370,4 +439,3 @@ html, body {
 .animate-fade-in-up {
   animation: fadeInUp 0.8s ease-out forwards;
 }
-

@@ -1,16 +1,15 @@
 /**
  * ============================================================================
- * МОИ ДАННЫЕ (КОНФИГУРАЦИЯ И СТРУКТУРА СТАЙЛИНГА)
+ * CITROËN C4 PICASSO 2007 - LUXURY EXCLUSIVE PREVIEW LANDING PAGE
  * ============================================================================
- * Файл компонентов и интерфейса для продажи автомобиля Citroen C4 Picasso 2007.
- * Все тексты для клиентов строго на ПОЛЬСКОМ языке.
- * Разработчик может легко редактировать данные в src/carData.ts
+ * Strona ogłoszenia sprzedaży samochodu Citroën C4 Picasso 2007.
+ * Język strony: POLSKI (PL).
+ * Kod obsługuje: Web Audio API, interaktywne reflektory, pełny luksusowy design,
+ * powiadomienia Telegram, zarządzanie zdjęciami IndexedDB oraz tryb właściciela (PIN: 0586).
  */
 
 import React, { useState, useEffect } from 'react';
 import defaultConfig from './telegramDefaultConfig.json';
-
-const defaultTelegramConfig = defaultConfig as { token: string; chatId: string };
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Phone, 
@@ -49,15 +48,37 @@ import {
   Loader2,
   AlertCircle,
   Settings,
-  HelpCircle
+  HelpCircle,
+  Lightbulb,
+  Volume2,
+  VolumeX,
+  Palette,
+  Eye,
+  Zap,
+  Radio,
+  Share2
 } from 'lucide-react';
 import { CAR_CONFIG } from './carData';
 import { PhotoManagerModal, GalleryItem } from './components/PhotoManagerModal';
 import { CepikHistory } from './components/CepikHistory';
+import { LuxuryGalleryModal } from './components/LuxuryGalleryModal';
+import { AudioDashboard } from './components/AudioDashboard';
 import { getIDBItem, setIDBItem, removeIDBItem } from './utils/idbStorage';
+import { audioSynth } from './utils/audioSynthesizer';
+
+const defaultTelegramConfig = defaultConfig as { token: string; chatId: string };
 
 export default function App() {
-  // Состояния интерфейса
+  // Cursor Light Spotlight Follower
+  const [mousePos, setMousePos] = useState({ x: -1000, y: -1000 });
+  
+  // Interactive Headlights Glowing Beam Mode
+  const [headlightsOn, setHeadlightsOn] = useState(false);
+
+  // Color Theme Mood Switcher ('gold' | 'cyan' | 'emerald')
+  const [themeMood, setThemeMood] = useState<'gold' | 'cyan' | 'emerald'>('gold');
+
+  // Interface States
   const [isScrolled, setIsScrolled] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
@@ -69,7 +90,16 @@ export default function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isPhotoManagerOpen, setIsPhotoManagerOpen] = useState(false);
 
-  // Авторизация владельца объявления (Admin/Owner Mode)
+  // Track Mouse Position for Glowing Cursor Light
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePos({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  // Admin / Owner Mode PIN: 0586
   const [isAdmin, setIsAdmin] = useState<boolean>(() => {
     try {
       const urlParams = new URLSearchParams(window.location.search);
@@ -88,8 +118,10 @@ export default function App() {
 
   const handleAdminLogin = (e: React.FormEvent) => {
     e.preventDefault();
+    audioSynth.playClick();
     if (adminPinInput === '0586') {
       setIsAdmin(true);
+      audioSynth.playLockSound();
       try {
         localStorage.setItem('citroen_is_admin', 'true');
       } catch {
@@ -104,6 +136,7 @@ export default function App() {
   };
 
   const handleAdminLogout = () => {
+    audioSynth.playClick();
     setIsAdmin(false);
     try {
       localStorage.removeItem('citroen_is_admin');
@@ -112,7 +145,7 @@ export default function App() {
     }
   };
 
-  // Галерея и главное фото с поддержкой IndexedDB и localStorage
+  // Gallery & Hero Image State with IDB Support
   const [gallery, setGallery] = useState<GalleryItem[]>(() => {
     try {
       const saved = localStorage.getItem('citroen_custom_gallery');
@@ -133,7 +166,6 @@ export default function App() {
     return CAR_CONFIG.images.hero;
   });
 
-  // Загрузка сохраненных данных из IndexedDB при старте
   useEffect(() => {
     let active = true;
     async function loadStoredData() {
@@ -150,46 +182,50 @@ export default function App() {
     return () => { active = false; };
   }, []);
 
-  const handleUpdateGallery = (newGallery: GalleryItem[]) => {
+  const handleUpdateGallery = async (newGallery: GalleryItem[]) => {
+    audioSynth.playClick();
     setGallery(newGallery);
-    setIDBItem('citroen_custom_gallery', newGallery);
     try {
       localStorage.setItem('citroen_custom_gallery', JSON.stringify(newGallery));
     } catch {
-      // Игнорируем QuotaExceededError для localStorage, так как данные сохранены в IndexedDB
+      // ignore
     }
+    await setIDBItem('citroen_custom_gallery', newGallery);
   };
 
-  const handleUpdateHero = (newHeroSrc: string) => {
-    setHeroImage(newHeroSrc);
-    setIDBItem('citroen_custom_hero', newHeroSrc);
+  const handleUpdateHero = async (newHero: string) => {
+    audioSynth.playClick();
+    setHeroImage(newHero);
     try {
-      localStorage.setItem('citroen_custom_hero', newHeroSrc);
+      localStorage.setItem('citroen_custom_hero', newHero);
     } catch {
-      // Игнорируем QuotaExceededError для localStorage
+      // ignore
     }
+    await setIDBItem('citroen_custom_hero', newHero);
   };
 
-  const handleResetDefaults = () => {
+  const handleResetDefaults = async () => {
+    audioSynth.playClick();
     setGallery(CAR_CONFIG.images.gallery);
     setHeroImage(CAR_CONFIG.images.hero);
-    removeIDBItem('citroen_custom_gallery');
-    removeIDBItem('citroen_custom_hero');
     try {
       localStorage.removeItem('citroen_custom_gallery');
       localStorage.removeItem('citroen_custom_hero');
     } catch {
       // ignore
     }
+    await removeIDBItem('citroen_custom_gallery');
+    await removeIDBItem('citroen_custom_hero');
   };
 
-  const handleDeleteImage = (id: number | string, e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    const updated = gallery.filter((item) => item.id !== id);
+  const handleDeleteImage = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    audioSynth.playClick();
+    const updated = gallery.filter(item => item.id !== id);
     handleUpdateGallery(updated);
   };
 
-  // Форма записи на тест-драйв
+  // Test Drive Form State
   const [bookingForm, setBookingForm] = useState({
     name: '',
     phone: '',
@@ -199,7 +235,7 @@ export default function App() {
   });
   const [bookingSuccess, setBookingSuccess] = useState(false);
 
-  // Форма прямой связи
+  // Contact Form State
   const [contactMessage, setContactMessage] = useState({
     name: '',
     phone: '',
@@ -208,45 +244,36 @@ export default function App() {
   });
   const [contactSuccess, setContactSuccess] = useState(false);
 
-  // Эффект темнения шапки и отображения кнопки "наверх" при прокрутке
+  // Scroll position listener
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 40) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
-
-      if (window.scrollY > 300) {
-        setShowScrollTop(true);
-      } else {
-        setShowScrollTop(false);
-      }
+      setIsScrolled(window.scrollY > 40);
+      setShowScrollTop(window.scrollY > 300);
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const scrollToTop = () => {
+    audioSynth.playClick();
     window.scrollTo({
       top: 0,
       behavior: 'smooth'
     });
   };
 
-  // Копирование VIN в буфер обмена
   const handleCopyVin = () => {
+    audioSynth.playClick();
     navigator.clipboard.writeText(CAR_CONFIG.vin);
     setCopiedVin(true);
     setTimeout(() => setCopiedVin(false), 2500);
   };
 
-  // Отфильтрованные изображения для галереи
   const filteredGallery = gallery.filter(item => 
     galleryFilter === 'Wszystkie' || item.category === galleryFilter
   );
 
-  // Интеграция с Telegram Ботом для получения заявок
+  // Telegram Integration State
   const [telegramToken, setTelegramToken] = useState<string>(() => {
     try {
       return localStorage.getItem('c4_telegram_token') || defaultTelegramConfig.token || '';
@@ -274,7 +301,6 @@ export default function App() {
   const [bookingSubmitting, setBookingSubmitting] = useState(false);
   const [bookingStatusMsg, setBookingStatusMsg] = useState<string | null>(null);
 
-  // Синхронизация с сервером Telegram при загрузке
   const [serverTelegramReady, setServerTelegramReady] = useState(false);
 
   useEffect(() => {
@@ -286,7 +312,6 @@ export default function App() {
           if (data.chatId) setTelegramChatId(data.chatId);
           setServerTelegramReady(Boolean(data.isReady || (data.token && data.chatId)));
         } else {
-          // Если на сервере пусто, но в localStorage сохранились ключи - отправляем их на сервер
           try {
             const localToken = (localStorage.getItem('c4_telegram_token') || defaultTelegramConfig.token || '').trim();
             const localChatId = (localStorage.getItem('c4_telegram_chat_id') || defaultTelegramConfig.chatId || '').trim();
@@ -305,7 +330,6 @@ export default function App() {
       .catch(() => {});
   }, []);
 
-  // Сохранение настроек Telegram (в localStorage и на сервер)
   const saveTelegramConfig = async (token: string, chatId: string) => {
     const trimmedToken = token.trim();
     const trimmedChatId = chatId.trim();
@@ -331,12 +355,10 @@ export default function App() {
     }
   };
 
-  // Функция отправки уведомления (через серверный API эндпоинт + прямое обращение к Telegram API для Cloudflare Pages/статических сайтов)
   const sendTelegramNotification = async (text: string, overrideToken?: string, overrideChatId?: string) => {
     const token = (overrideToken !== undefined ? overrideToken : (telegramToken || defaultTelegramConfig.token || '')).trim();
     const chatId = (overrideChatId !== undefined ? overrideChatId : (telegramChatId || defaultTelegramConfig.chatId || '')).trim();
 
-    // 1. Пробуем отправить через серверный эндпоинт
     try {
       const serverRes = await fetch('/api/telegram/send', {
         method: 'POST',
@@ -360,11 +382,10 @@ export default function App() {
       console.log('Server send fallback:', serverErr);
     }
 
-    // 2. Прямой запрос к Telegram API из браузера (работает 100% на Cloudflare Pages и любых статических хостингах)
     if (!token || !chatId) {
       return { 
         success: false, 
-        error: 'Brak wpisanego Bot Token lub Chat ID. Skonfiguruj Telegram w panelu.' 
+        error: 'Brak wpisanego Bot Token lub Chat ID.' 
       };
     }
 
@@ -386,26 +407,20 @@ export default function App() {
       if (data.ok) {
         return { success: true };
       } else {
-        let errDetails = data.description || 'Błąd Telegram API';
-        if (data.error_code === 401) {
-          errDetails = 'Неверный Bot Token (401 Unauthorized)';
-        } else if (data.error_code === 400) {
-          errDetails = `Błąd 400: ${data.description}. Убедитесь, что вы отправили /start боту в Telegram!`;
-        }
-        return { success: false, error: errDetails };
+        return { success: false, error: data.description || 'Błąd Telegram API' };
       }
     } catch (err: any) {
-      return { success: false, error: err.message || 'Błąd połączenia z serwerem Telegram' };
+      return { success: false, error: err.message || 'Błąd połączenia' };
     }
   };
 
-  // Автоматический поиск Chat ID через Telegram API (getUpdates)
   const handleDetectChatId = async () => {
+    audioSynth.playClick();
     const token = telegramToken.trim();
     if (!token) {
       setTelegramTestStatus({
         type: 'error',
-        message: '❌ Сначала вставьте ваш Bot Token!'
+        message: '❌ Wpisz najpierw Bot Token!'
       });
       return;
     }
@@ -414,7 +429,6 @@ export default function App() {
     setTelegramTestStatus({ type: null, message: '' });
 
     try {
-      // 1. Пробуем определить через сервер
       const serverRes = await fetch('/api/telegram/detect-chat-id', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -426,32 +440,21 @@ export default function App() {
         const idStr = String(serverData.latestChatId);
         setTelegramChatId(idStr);
         saveTelegramConfig(token, idStr);
-        const nameInfo = serverData.latestChat?.name ? ` (${serverData.latestChat.name})` : '';
         setTelegramTestStatus({
           type: 'success',
-          message: `🎉 Ваш Chat ID успешно найден: ${idStr}${nameInfo}! Сохранено.`
+          message: `🎉 Znaleziono Chat ID: ${idStr}! Zapisano.`
         });
         setIsDetectingChatId(false);
         return;
       }
 
-      if (serverData.error) {
-        setTelegramTestStatus({
-          type: 'error',
-          message: `⚠️ ${serverData.error}`
-        });
-        setIsDetectingChatId(false);
-        return;
-      }
-
-      // 2. Резервный прямой запрос к api.telegram.org из браузера
       const res = await fetch(`https://api.telegram.org/bot${token}/getUpdates`);
       const data = await res.json();
 
       if (!data.ok) {
         setTelegramTestStatus({
           type: 'error',
-          message: `❌ Ошибка Telegram: ${data.description || 'Неверный Token'}`
+          message: `❌ Błąd Telegram: ${data.description || 'Błędny Token'}`
         });
         setIsDetectingChatId(false);
         return;
@@ -461,14 +464,14 @@ export default function App() {
       if (updates.length === 0) {
         setTelegramTestStatus({
           type: 'error',
-          message: '⚠️ Сообщений от вас пока нет! Напишите боту в Telegram команду /start или любое слово, затем нажмите эту кнопку снова.'
+          message: '⚠️ Wyślij wiadomość /start do bota w Telegramie i spróbuj ponownie.'
         });
         setIsDetectingChatId(false);
         return;
       }
 
       const lastUpdate = updates[updates.length - 1];
-      const detectedId = lastUpdate?.message?.chat?.id || lastUpdate?.my_chat_member?.chat?.id || lastUpdate?.callback_query?.message?.chat?.id;
+      const detectedId = lastUpdate?.message?.chat?.id || lastUpdate?.my_chat_member?.chat?.id;
 
       if (detectedId) {
         const idStr = String(detectedId);
@@ -476,30 +479,25 @@ export default function App() {
         saveTelegramConfig(token, idStr);
         setTelegramTestStatus({
           type: 'success',
-          message: `🎉 Ваш Chat ID найден: ${idStr}. Сохранено!`
-        });
-      } else {
-        setTelegramTestStatus({
-          type: 'error',
-          message: '⚠️ Не удалось извлечь Chat ID. Напишите боту /start в Telegram и попробуйте снова.'
+          message: `🎉 Chat ID: ${idStr}. Zapisano!`
         });
       }
     } catch (err: any) {
       setTelegramTestStatus({
         type: 'error',
-        message: `❌ Ошибка: ${err.message || 'Проверьте токен'}`
+        message: `❌ Błąd: ${err.message}`
       });
     } finally {
       setIsDetectingChatId(false);
     }
   };
 
-  // Проверка соединения с Telegram из админки
   const handleTestTelegram = async () => {
+    audioSynth.playClick();
     if (!telegramToken.trim() || !telegramChatId.trim()) {
       setTelegramTestStatus({
         type: 'error',
-        message: '❌ Сначала введите Bot Token и Chat ID!'
+        message: '❌ Wpisz Bot Token i Chat ID!'
       });
       return;
     }
@@ -507,33 +505,30 @@ export default function App() {
     setTelegramTestLoading(true);
     setTelegramTestStatus({ type: null, message: '' });
 
-    // 1. Сначала жестко сохраняем на сервер
     await saveTelegramConfig(telegramToken, telegramChatId);
 
-    const testMsg = `🧪 <b>ТЕСТ УВЕДОМЛЕНИЙ CITROEN C4 PICASSO</b>\n\n` +
-      `✅ Поздравляем! Ваш сервер успешно привязан к Telegram-боту.\n\n` +
-      `Теперь на опубликованном сайте сообщения от посетителей будут автоматически отправляться в этот чат!`;
+    const testMsg = `🧪 <b>TEST POWIADOMIEŃ CITROËN C4 PICASSO</b>\n\n` +
+      `✅ Połączenie z botem działa prawidłowo! Zapytania o samochód będą trafiać do tego czatu.`;
 
-    // 2. Тестируем отправку через сервер без клиентских фолбэков (как обычный посетитель сайта)
     const res = await sendTelegramNotification(testMsg);
 
     setTelegramTestLoading(false);
     if (res.success) {
       setTelegramTestStatus({
         type: 'success',
-        message: '🎉 Успех! Сообщение отправлено через сервер. Теперь на опубликованном сайте все заявки покупателей будут приходить вам в Telegram!'
+        message: '🎉 Wiadomość testowa wysłana pomyślnie!'
       });
     } else {
       setTelegramTestStatus({
         type: 'error',
-        message: `❌ Ошибка отправки: ${res.error || 'Проверьте токен и Chat ID'}`
+        message: `❌ Błąd: ${res.error}`
       });
     }
   };
 
-  // Обработка бронирования тест-драйва
   const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    audioSynth.playClick();
     setBookingSubmitting(true);
     setBookingStatusMsg(null);
 
@@ -549,6 +544,7 @@ export default function App() {
 
     setBookingSubmitting(false);
     setBookingSuccess(true);
+    audioSynth.playLockSound();
 
     if (!result.success && (telegramToken || telegramChatId)) {
       setBookingStatusMsg(`Uwaga: ${result.error}`);
@@ -562,9 +558,9 @@ export default function App() {
     }, 4000);
   };
 
-  // Обработка сообщения
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    audioSynth.playClick();
     setContactSubmitting(true);
     setContactStatusMsg(null);
 
@@ -578,6 +574,7 @@ export default function App() {
 
     setContactSubmitting(false);
     setContactSuccess(true);
+    audioSynth.playLockSound();
 
     if (!result.success && (telegramToken || telegramChatId)) {
       setContactStatusMsg(`Uwaga: ${result.error}`);
@@ -594,469 +591,371 @@ export default function App() {
     <div className="min-h-screen bg-[#050608] text-slate-100 relative overflow-x-hidden selection:bg-[#d4af37] selection:text-black">
       
       {/* =========================================================================
-          1. ЭКСКЛЮЗИВНЫЙ МНОГОСЛОЙНЫЙ АНИМИРОВАННЫЙ ФОН
+          1. CURSOR SPOTLIGHT FOLLOWER & MULTI-LAYER DYNAMIC BACKGROUND
          ========================================================================= */}
+      <div 
+        className="pointer-events-none fixed inset-0 z-30 transition-opacity duration-300" 
+        style={{
+          background: `radial-gradient(650px circle at ${mousePos.x}px ${mousePos.y}px, rgba(212, 175, 55, 0.08), transparent 80%)`
+        }}
+      />
+
       <div className="lux-bg-mesh" />
       <div className="lux-light-beams" />
       <div className="lux-hex-grid" />
+      <div className="lux-vignette" />
+      
+      {/* Floating Orbs */}
       <div className="lux-orb-1" />
       <div className="lux-orb-2" />
       <div className="lux-orb-3" />
-      
-      {/* Анимированные золотые частицы на фоне */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="lux-particle w-2 h-2 top-[15%] left-[10%]" style={{ animationDelay: '0s', animationDuration: '14s' }} />
-        <div className="lux-particle w-3 h-3 top-[35%] left-[80%]" style={{ animationDelay: '2s', animationDuration: '18s' }} />
-        <div className="lux-particle w-2 h-2 top-[60%] left-[25%]" style={{ animationDelay: '5s', animationDuration: '12s' }} />
-        <div className="lux-particle w-2.5 h-2.5 top-[80%] left-[70%]" style={{ animationDelay: '1s', animationDuration: '16s' }} />
-        <div className="lux-particle w-1.5 h-1.5 top-[25%] left-[50%]" style={{ animationDelay: '4s', animationDuration: '10s' }} />
-        <div className="lux-particle w-2 h-2 top-[70%] left-[85%]" style={{ animationDelay: '7s', animationDuration: '15s' }} />
-        <div className="lux-particle w-3 h-3 top-[45%] left-[12%]" style={{ animationDelay: '3s', animationDuration: '20s' }} />
-      </div>
 
-      <div className="lux-vignette" />
+      {/* Dynamic Gold Particles */}
+      {[
+        { top: '12%', left: '10%', size: '6px', delay: '0s' },
+        { top: '28%', left: '85%', size: '8px', delay: '2s' },
+        { top: '45%', left: '20%', size: '5px', delay: '4s' },
+        { top: '65%', left: '75%', size: '7px', delay: '1s' },
+        { top: '82%', left: '40%', size: '6px', delay: '3s' },
+      ].map((p, i) => (
+        <div
+          key={i}
+          className="lux-particle"
+          style={{
+            top: p.top,
+            left: p.left,
+            width: p.size,
+            height: p.size,
+            animationDelay: p.delay
+          }}
+        />
+      ))}
 
       {/* =========================================================================
-          2. ФИКСИРОВАННАЯ ШАПКА (HEADER)
+          2. STYLOWY HEADER & MENU NAWIGACYJNE
          ========================================================================= */}
-      <header 
-        className={`fixed top-0 left-0 right-0 h-[80px] z-[1000] transition-all duration-300 flex items-center justify-between px-4 sm:px-8 md:px-12 ${
-          isScrolled 
-            ? 'bg-[#0a0a0f]/95 shadow-2xl shadow-black/80 backdrop-blur-[20px] border-b border-[#d4af37]/20' 
-            : 'bg-[#0a0a0f]/80 backdrop-blur-[20px] border-b border-white/5'
-        }`}
-      >
-        {/* Логотип слева */}
-        <a href="#" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 rounded-full border border-[#d4af37]/50 flex items-center justify-center bg-gradient-to-br from-[#d4af37]/20 to-black group-hover:border-[#d4af37] group-hover:scale-105 transition-all duration-300 shadow-md shadow-[#d4af37]/20">
-            <Car className="w-5 h-5 text-[#f6e05e]" />
-          </div>
-          <div className="flex flex-col">
-            <div className="flex items-baseline font-bold font-display tracking-wider text-[20px] sm:text-[22px] leading-tight">
-              <span className="gold-shimmer-text">citroen</span>
-              <span className="text-white font-extrabold mx-0.5">c4</span>
-              <span className="text-[#f6e05e] font-display italic">picasso</span>
-              <span className="text-xs px-1.5 py-0.5 ml-1 rounded bg-[#d4af37]/20 border border-[#d4af37]/40 text-[#f6e05e] font-mono tracking-normal">.pl</span>
+      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        isScrolled 
+          ? 'bg-[#050608]/90 backdrop-blur-xl border-b border-[#d4af37]/30 py-3 shadow-[0_10px_30px_rgba(0,0,0,0.8)]' 
+          : 'bg-transparent py-5 sm:py-7'
+      }`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 flex items-center justify-between">
+          
+          {/* Logo i nazwa */}
+          <a href="#" className="flex items-center gap-3 group" onClick={() => audioSynth.playClick()}>
+            <div className="relative">
+              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-[#d4af37] via-[#f6e05e] to-[#b8860b] p-0.5 shadow-lg shadow-[#d4af37]/30 group-hover:scale-105 transition-transform">
+                <div className="w-full h-full bg-[#050608] rounded-[14px] flex items-center justify-center">
+                  <Car className="w-5 h-5 text-[#f6e05e]" />
+                </div>
+              </div>
+              <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#f6e05e] opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-[#d4af37]"></span>
+              </span>
             </div>
-            <span className="text-[9px] tracking-[2px] text-gray-400 uppercase font-medium">
-              Oficjalne Ogłoszenie Sprzedaży
-            </span>
-          </div>
-        </a>
-
-        {/* Навигационное меню для десктопа */}
-        <nav className="hidden lg:flex items-center gap-8 text-sm font-medium text-gray-300">
-          <a href="#specyfikacja" className="hover:text-[#d4af37] transition-colors">Specyfikacja</a>
-          <a href="#wyposazenie" className="hover:text-[#d4af37] transition-colors">Wyposażenie</a>
-          <a href="#galeria" className="hover:text-[#d4af37] transition-colors">Galeria</a>
-          <a href="#serwis" className="hover:text-[#d4af37] transition-colors">Historia</a>
-          <a href="#opis" className="hover:text-[#d4af37] transition-colors">Opis</a>
-          <a href="#kontakt" className="hover:text-[#d4af37] transition-colors">Kontakt</a>
-        </nav>
-
-        {/* Правая часть: Быстрый контакт, кнопка вызова модального окна и статус Właściciela */}
-        <div className="hidden sm:flex items-center gap-3">
-          <a 
-            href="#kontakt"
-            className="flex items-center gap-2 text-sm font-semibold text-gray-200 hover:text-[#d4af37] transition-colors px-3 py-2 rounded-lg hover:bg-white/5"
-          >
-            <Send className="w-4 h-4 text-[#d4af37]" />
-            <span>Napisz do mnie</span>
+            
+            <div className="flex flex-col">
+              <span className="font-syne font-extrabold text-base sm:text-lg tracking-tight text-white group-hover:text-[#f6e05e] transition-colors">
+                Citroën C4 Picasso
+              </span>
+              <span className="text-[10px] uppercase tracking-widest text-[#d4af37] font-num font-bold">
+                1.6 HDi • 2007 r.
+              </span>
+            </div>
           </a>
 
+          {/* Nawigacja Desktop */}
+          <nav className="hidden md:flex items-center gap-7 text-xs font-semibold tracking-wide text-gray-300">
+            <a href="#o-samochodzie" onClick={() => audioSynth.playClick()} className="hover:text-[#f6e05e] transition-colors">O Samochodzie</a>
+            <a href="#dane-techniczne" onClick={() => audioSynth.playClick()} className="hover:text-[#f6e05e] transition-colors">Specyfikacja</a>
+            <a href="#wyposazenie" onClick={() => audioSynth.playClick()} className="hover:text-[#f6e05e] transition-colors">Wyposażenie</a>
+            <a href="#galeria" onClick={() => audioSynth.playClick()} className="hover:text-[#f6e05e] transition-colors">Galeria HD</a>
+            <a href="#serwis" onClick={() => audioSynth.playClick()} className="hover:text-[#f6e05e] transition-colors">CEPiK & Historia</a>
+            <a href="#kontakt" onClick={() => audioSynth.playClick()} className="hover:text-[#f6e05e] transition-colors">Kontakt</a>
+          </nav>
 
+          {/* Prawy panel nawigacji i przyciski akcji */}
+          <div className="flex items-center gap-2.5">
+            
+            {/* Color Theme Switcher */}
+            <button
+              onClick={() => {
+                const nextTheme = themeMood === 'gold' ? 'cyan' : themeMood === 'cyan' ? 'emerald' : 'gold';
+                setThemeMood(nextTheme);
+                document.documentElement.setAttribute('data-theme', nextTheme);
+                audioSynth.playClick();
+              }}
+              className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-gray-300 hover:text-[#f6e05e] hover:bg-white/10 transition-all hidden sm:flex items-center gap-1.5 text-xs font-semibold"
+              title="Zmień motyw kolorystyczny"
+            >
+              <Palette className="w-4 h-4 text-[#f6e05e]" />
+            </button>
 
-          {/* Кнопка авторизации / статуса владельца */}
-          <button
-            onClick={() => isAdmin ? handleAdminLogout() : setIsAdminModalOpen(true)}
-            className={`p-2.5 rounded-full border text-xs font-semibold transition-all duration-300 flex items-center gap-1.5 shadow-md ${
-              isAdmin
-                ? 'bg-[#d4af37]/20 border-[#d4af37] text-[#f6e05e] hover:bg-red-500/20 hover:border-red-500 hover:text-red-300'
-                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-[#d4af37]/50'
-            }`}
-            title={isAdmin ? "Wyłącz tryb edycji (Właściciel)" : "Tryb Właściciela (Dodawanie / Zmiana zdjęć)"}
-          >
-            {isAdmin ? <ShieldCheck className="w-4 h-4 text-[#f6e05e]" /> : <Lock className="w-4 h-4" />}
-            <span className="hidden xl:inline text-xs">{isAdmin ? "Tryb Edycji" : "Właściciel"}</span>
-          </button>
+            {/* Mute Audio Button */}
+            <button
+              onClick={() => {
+                const muted = audioSynth.toggleMute();
+                if (!muted) audioSynth.playClick();
+              }}
+              className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-gray-300 hover:text-[#f6e05e] hover:bg-white/10 transition-all hidden sm:flex items-center gap-1.5 text-xs font-semibold"
+              title={audioSynth.isMuted ? "Włącz dźwięki" : "Wycisz dźwięki"}
+            >
+              {audioSynth.isMuted ? <VolumeX className="w-4 h-4 text-red-400" /> : <Volume2 className="w-4 h-4 text-[#f6e05e]" />}
+            </button>
+
+            {/* Admin PIN Login button */}
+            <button
+              onClick={() => {
+                audioSynth.playClick();
+                if (isAdmin) {
+                  setIsPhotoManagerOpen(true);
+                } else {
+                  setIsAdminModalOpen(true);
+                }
+              }}
+              className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-gray-300 hover:text-[#f6e05e] hover:bg-white/10 transition-all text-xs font-semibold flex items-center gap-1.5"
+              title={isAdmin ? "Otwórz Panel Właściciela" : "Zaloguj jako Właściciel (PIN)"}
+            >
+              {isAdmin ? <Unlock className="w-4 h-4 text-[#f6e05e]" /> : <Lock className="w-4 h-4" />}
+              <span className="hidden lg:inline">{isAdmin ? "Zarządzaj" : "Właściciel"}</span>
+            </button>
+
+            {/* CTA Jazda Próbna */}
+            <button
+              onClick={() => {
+                audioSynth.playClick();
+                setIsTestDriveOpen(true);
+              }}
+              className="px-4 py-2.5 rounded-xl cta-button text-xs font-bold tracking-wide flex items-center gap-2 shadow-lg shadow-[#d4af37]/20"
+            >
+              <Calendar className="w-3.5 h-3.5 text-black" />
+              <span className="hidden sm:inline">Jazda Próbna</span>
+            </button>
+
+            {/* Mobile Menu Hamburger */}
+            <button
+              onClick={() => {
+                audioSynth.playClick();
+                setMobileMenuOpen(!mobileMenuOpen);
+              }}
+              className="md:hidden p-2.5 rounded-xl bg-white/5 border border-white/10 text-white"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+
+          </div>
+
         </div>
 
-        {/* Мобильная кнопка меню */}
-        <button 
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="lg:hidden p-2 rounded-lg text-gray-300 hover:text-[#d4af37] hover:bg-white/5"
-          aria-label="Menu"
-        >
-          {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
+        {/* Mobile Dropdown Menu */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="md:hidden bg-[#0a0a0f]/95 backdrop-blur-2xl border-b border-[#d4af37]/30 px-6 py-4 space-y-3 text-sm font-semibold"
+            >
+              <a href="#o-samochodzie" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-gray-200 border-b border-white/5">O Samochodzie</a>
+              <a href="#dane-techniczne" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-gray-200 border-b border-white/5">Specyfikacja</a>
+              <a href="#wyposazenie" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-gray-200 border-b border-white/5">Wyposażenie</a>
+              <a href="#galeria" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-gray-200 border-b border-white/5">Galeria HD</a>
+              <a href="#serwis" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-gray-200 border-b border-white/5">CEPiK & Historia</a>
+              <a href="#kontakt" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-gray-200">Kontakt</a>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
-      {/* Мобильное выпадающее меню */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-[80px] left-0 right-0 bg-[#0a0a0f]/98 border-b border-[#d4af37]/20 p-6 z-[999] lg:hidden backdrop-blur-2xl flex flex-col gap-4 text-center shadow-2xl"
-          >
-            <a 
-              href="#specyfikacja" 
-              onClick={() => setMobileMenuOpen(false)}
-              className="py-2 text-gray-200 hover:text-[#d4af37] text-lg font-medium border-b border-white/5"
-            >
-              Specyfikacja & Cechy
-            </a>
-            <a 
-              href="#wyposazenie" 
-              onClick={() => setMobileMenuOpen(false)}
-              className="py-2 text-gray-200 hover:text-[#d4af37] text-lg font-medium border-b border-white/5"
-            >
-              Wyposażenie
-            </a>
-            <a 
-              href="#galeria" 
-              onClick={() => setMobileMenuOpen(false)}
-              className="py-2 text-gray-200 hover:text-[#d4af37] text-lg font-medium border-b border-white/5"
-            >
-              Galeria Zdjęć
-            </a>
-            <a 
-              href="#serwis" 
-              onClick={() => setMobileMenuOpen(false)}
-              className="py-2 text-gray-200 hover:text-[#d4af37] text-lg font-medium border-b border-white/5"
-            >
-              Historia Serwisowa
-            </a>
-            <a 
-              href="#kontakt" 
-              onClick={() => setMobileMenuOpen(false)}
-              className="py-2 text-gray-200 hover:text-[#d4af37] text-lg font-medium"
-            >
-              Kontakt
-            </a>
-
-            <div className="pt-4 flex flex-col gap-3">
-              <a 
-                href="#kontakt"
-                onClick={() => setMobileMenuOpen(false)}
-                className="w-full py-3 rounded-xl bg-white/5 border border-white/10 text-white font-semibold flex items-center justify-center gap-2"
-              >
-                <Send className="w-4 h-4 text-[#d4af37]" />
-                Napisz wiadomość
-              </a>
-
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* =========================================================================
-          3. ГЛАВНАЯ ПРЕЗЕНТАЦИОННАЯ СЕКЦИЯ (HERO SECTION)
+          3. GLÓWNA SEKCJA HERO z PRZYCISKIEM REFLEKTORÓW (HEADLIGHT BEAMS)
          ========================================================================= */}
-      <section className="relative pt-[120px] pb-16 sm:pb-24 px-4 sm:px-8 md:px-12 max-w-7xl mx-auto z-10">
+      <section id="o-samochodzie" className="pt-32 sm:pt-40 pb-16 px-4 sm:px-8 md:px-12 max-w-7xl mx-auto z-10 relative">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
-          {/* Левая часть: Главный заголовок, цена и кнопки */}
-          <motion.div 
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
-            className="lg:col-span-6 space-y-6 text-left"
-          >
-            {/* Главное название H1 */}
-            <div>
-              <h1 className="heading-h1">
-                {CAR_CONFIG.brand} <span className="font-extrabold">{CAR_CONFIG.model}</span>
-              </h1>
+          {/* Lewa kolumna: Tekst i Nagłówek */}
+          <div className="lg:col-span-6 space-y-6 text-left">
+            
+            {/* Badges */}
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span className="px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-[#d4af37]/20 border border-[#d4af37]/40 text-[#f6e05e] font-num">
+                {CAR_CONFIG.statusBadge}
+              </span>
+              <span className="px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-num">
+                Ważne OC i Przegląd
+              </span>
             </div>
 
-            {/* Подзаголовок с важными характеристиками */}
-            <p className="text-gray-300 text-lg sm:text-xl font-light leading-relaxed">
-              Rok <span className="text-[#f6e05e] font-semibold">{CAR_CONFIG.year}</span> • Niezawodny silnik{' '}
-              <span className="text-[#f6e05e] font-semibold">{CAR_CONFIG.engine}</span> • Przebieg{' '}
-              <span className="text-[#f6e05e] font-semibold">{CAR_CONFIG.mileage}</span>
+            {/* Główny Nagłówek H1 */}
+            <h1 className="heading-h1">
+              Citroën C4 Picasso
+            </h1>
+
+            {/* Podtytuł i Cena */}
+            <div className="flex items-baseline gap-4 flex-wrap">
+              <span className="font-syne font-extrabold text-3xl sm:text-5xl text-[#f6e05e] gold-shimmer-text tracking-tight font-num">
+                {CAR_CONFIG.price}
+              </span>
+              <span className="text-xs sm:text-sm text-gray-400 font-semibold uppercase tracking-wider">
+                Do negocjacji • Umowa kupna-sprzedaży
+              </span>
+            </div>
+
+            <p className="text-gray-300 text-sm sm:text-base font-light leading-relaxed max-w-xl">
+              Wyjątkowo zadbany, rodzinny minivan z niezawodnym i oszczędnym silnikiem <strong className="text-white font-semibold">1.6 HDi (110 KM)</strong>. 
+              Przestronne, panoramiczne wnętrze, niski udokumentowany przebieg oraz kompletny serwis.
             </p>
 
-            {/* Блок с ценой */}
-            <div className="p-6 rounded-2xl glass-card flex flex-wrap items-baseline justify-between gap-4 border-l-4 border-l-[#d4af37]">
-              <div>
-                <span className="text-xs uppercase tracking-widest text-gray-400 block mb-1">Cena do negocjacji</span>
-                <div className="flex items-baseline gap-3">
-                  <span className="text-4xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#f6e05e] via-[#d4af37] to-[#b8860b]">
-                    {CAR_CONFIG.pricePLN}
-                  </span>
-                </div>
-              </div>
-
-            </div>
-
-
-
-            {/* Быстрая строка фактов */}
-            <div className="grid grid-cols-3 gap-3 pt-4 border-t border-white/10 text-center sm:text-left">
-              <div>
-                <span className="text-xs text-gray-400 block">Lokalizacja</span>
-                <span className="text-sm font-semibold text-gray-200 flex items-center justify-center sm:justify-start gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-[#d4af37]" />
-                  {CAR_CONFIG.location}
-                </span>
-              </div>
-              <div>
-                <span className="text-xs text-gray-400 block">Skrzynia</span>
-                <span className="text-sm font-semibold text-gray-200">{CAR_CONFIG.transmission}</span>
-              </div>
-              <div>
-                <span className="text-xs text-gray-400 block">Paliwo</span>
-                <span className="text-sm font-semibold text-gray-200">{CAR_CONFIG.fuelType}</span>
-              </div>
-            </div>
-
-          </motion.div>
-
-          {/* Правая часть: Шоукейс фотографии с плавающими карточками */}
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="lg:col-span-6 relative group"
-          >
-            {/* Фоновое аура-свечение золота */}
-            <div className="absolute -inset-1.5 bg-gradient-to-tr from-[#f6e05e]/25 via-[#d4af37]/40 to-[#b8860b]/25 rounded-[2.2rem] blur-2xl opacity-70 group-hover:opacity-100 transition duration-1000 group-hover:duration-500 pointer-events-none" />
-
-            {/* Главный контейнер карточки */}
-            <div className="relative rounded-[2rem] p-2.5 sm:p-3 bg-gradient-to-b from-white/15 via-white/5 to-black/80 border border-[#d4af37]/40 backdrop-blur-2xl shadow-[0_25px_60px_-15px_rgba(212,175,55,0.3)] transition-all duration-500 hover:border-[#f6e05e]/80">
-              <div className="relative aspect-[16/10] rounded-2xl overflow-hidden bg-black/60 shadow-inner group/img">
-                <img 
-                  src={heroImage} 
-                  alt="Citroën C4 Picasso 2007"
-                  referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover transform group-hover/img:scale-105 transition-transform duration-700 ease-out"
-                />
-
-                {/* Оверлей градиент */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent pointer-events-none" />
-
-                {/* Верхняя панель: кнопка Лайк & Управления */}
-                <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-end pointer-events-auto">
-                  <div className="flex items-center gap-2">
-                    {isAdmin && (
-                      <button
-                        onClick={() => setIsPhotoManagerOpen(true)}
-                        className="px-3 py-1.5 rounded-full bg-[#d4af37] text-black font-bold text-xs hover:bg-[#f6e05e] transition-all flex items-center gap-1.5 shadow-lg shadow-[#d4af37]/30"
-                        title="Dodaj lub zmień zdjęcia"
-                      >
-                        <Upload className="w-3.5 h-3.5" />
-                        <span>Zmień zdjęcia</span>
-                      </button>
-                    )}
-
-                    <button 
-                      onClick={() => setIsLiked(!isLiked)}
-                      className="w-9 h-9 rounded-full bg-black/70 backdrop-blur-md border border-white/20 flex items-center justify-center text-white hover:border-[#d4af37] hover:bg-black transition-all shadow-lg active:scale-90"
-                      aria-label="Dodaj do ulubionych"
-                    >
-                      <Heart className={`w-4 h-4 transition-transform duration-300 ${isLiked ? 'fill-red-500 text-red-500 scale-110' : 'text-gray-300'}`} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Кнопка увеличения */}
-                <div className="absolute bottom-3.5 right-3.5 flex items-center text-xs font-medium text-gray-200">
-                  <button 
-                    onClick={() => setSelectedImageIndex(0)}
-                    className="bg-gradient-to-r from-[#f6e05e] via-[#d4af37] to-[#b8860b] text-black font-extrabold px-3.5 py-1.5 rounded-xl backdrop-blur-md hover:brightness-110 transition-all shadow-lg shadow-[#d4af37]/30 flex items-center gap-1.5 active:scale-95"
-                  >
-                    <Maximize2 className="w-3.5 h-3.5" />
-                    Powiększ
-                  </button>
-                </div>
-              </div>
-
-              {/* Плавающая карточка 1: Экономия (Średnie spalanie 5.6 l / 100 km) */}
-              <motion.div 
-                animate={{ y: [0, -6, 0] }}
-                transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-                className="absolute -bottom-3 left-2 sm:-bottom-5 sm:-left-4 max-w-[240px] sm:max-w-none px-4 py-3 rounded-2xl flex items-center border border-[#d4af37]/60 shadow-[0_15px_35px_rgba(212,175,55,0.25)] bg-[#0c0c16]/95 backdrop-blur-xl z-10 hover:border-[#f6e05e] hover:shadow-[0_20px_40px_rgba(246,224,94,0.35)] transition-all duration-300"
+            {/* Główne Przyciski Akcji */}
+            <div className="flex flex-wrap items-center gap-4 pt-2">
+              <a
+                href="#kontakt"
+                onClick={() => audioSynth.playClick()}
+                className="px-7 py-4 rounded-2xl cta-button font-syne font-extrabold text-sm tracking-wide flex items-center gap-2.5 shadow-xl shadow-[#d4af37]/25 text-black"
               >
-                <div>
-                  <div className="flex items-center gap-1.5 mb-0.5">
-                    <span className="text-[10px] sm:text-[11px] uppercase tracking-widest text-gray-300 block font-bold">Średnie spalanie</span>
-                    <span className="px-1.5 py-0.2 text-[9px] font-black uppercase rounded bg-[#d4af37]/20 text-[#f6e05e] border border-[#d4af37]/40">Eko</span>
-                  </div>
-                  <span className="text-sm sm:text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-[#f6e05e] via-white to-[#d4af37] tracking-tight">
-                    5.6 l <span className="text-xs font-semibold text-gray-300">/ 100 km</span>
-                  </span>
-                </div>
-              </motion.div>
+                <Phone className="w-4 h-4 text-black" />
+                <span>Zadzwoń do Właściciela</span>
+              </a>
 
-              {/* Плавающая карточка 2: Оптический обзор Visiospace */}
-              <motion.div 
-                animate={{ y: [0, 6, 0] }}
-                transition={{ repeat: Infinity, duration: 4.5, ease: "easeInOut", delay: 0.5 }}
-                className="absolute -top-3 right-2 sm:-top-5 sm:-right-4 max-w-[240px] sm:max-w-none px-4 py-3 rounded-2xl flex items-center border border-[#d4af37]/60 shadow-[0_15px_35px_rgba(212,175,55,0.25)] bg-[#0c0c16]/95 backdrop-blur-xl z-10 hover:border-[#f6e05e] hover:shadow-[0_20px_40px_rgba(246,224,94,0.35)] transition-all duration-300"
-              >
-                <div>
-                  <div className="flex items-center gap-1.5 mb-0.5">
-                    <span className="text-[10px] sm:text-[11px] uppercase tracking-widest text-gray-300 block font-bold">Panoramy Visiospace</span>
-                  </div>
-                  <span className="text-sm sm:text-base font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-[#f6e05e] to-[#d4af37] tracking-tight">
-                    Szyba 180°
-                  </span>
-                </div>
-              </motion.div>
-
-            </div>
-          </motion.div>
-
-        </div>
-      </section>
-
-      {/* =========================================================================
-          4. БЛОК ХАРАКТЕРИСТИК (UBEZPIECZENIE, BADANIE, SERWIS, OPONY, WŁAŚCICIEL)
-         ========================================================================= */}
-      <section id="specyfikacja" className="py-16 px-4 sm:px-8 md:px-12 max-w-7xl mx-auto z-10 relative">
-        
-        {/* Заголовок H2 с декоративными золотыми линиями */}
-        <div className="heading-h2-container">
-          <h2 className="heading-h2">
-            Kondycja i formalności
-          </h2>
-        </div>
-
-        <p className="text-center text-gray-400 max-w-2xl mx-auto mb-12 -mt-4 text-sm font-light">
-          Pełny wgląd w stan prawny i techniczny pojazdu. Wszystkie formalności opłacone na rok do przodu.
-        </p>
-
-        {/* Сетка из 6 стеклянных карточек */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {CAR_CONFIG.keySpecs.map((spec, index) => {
-            const isWarning = spec.badgeType === 'warning';
-            return (
-              <motion.div
-                key={spec.id}
-                initial={{ opacity: 0, y: 25 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className={`glass-card p-6 rounded-2xl relative group transition-all flex flex-col justify-between ${
-                  isWarning
-                    ? 'border-amber-500/30 bg-amber-950/10 hover:border-amber-500/60'
-                    : 'hover:border-[#d4af37]/50'
+              <button
+                onClick={() => {
+                  setHeadlightsOn(!headlightsOn);
+                  audioSynth.playSwitchSound();
+                }}
+                className={`px-6 py-4 rounded-2xl border font-bold text-xs tracking-wide transition-all duration-300 flex items-center gap-2 ${
+                  headlightsOn 
+                    ? 'bg-[#d4af37] text-black border-[#f6e05e] shadow-lg shadow-[#d4af37]/40 scale-105'
+                    : 'bg-white/5 border-white/10 text-gray-200 hover:border-[#d4af37] hover:bg-white/10'
                 }`}
               >
-                <div>
-                  {/* Шапка карточки */}
-                  <div className="flex items-center justify-between mb-4">
-                    <span className={`text-3xl p-2.5 rounded-xl border transition-colors ${
-                      isWarning
-                        ? 'bg-amber-500/10 border-amber-500/20 text-amber-300'
-                        : 'bg-white/5 border-white/10 group-hover:bg-[#d4af37]/10'
-                    }`}>
-                      {spec.icon}
-                    </span>
-                    <span className={`text-xs font-semibold px-3 py-1 rounded-full border ${
-                      isWarning
-                        ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-                        : 'bg-[#d4af37]/15 text-[#f6e05e] border-[#d4af37]/30'
-                    }`}>
-                      {spec.badge}
-                    </span>
-                  </div>
+                <Lightbulb className={`w-4.5 h-4.5 ${headlightsOn ? 'text-black fill-black' : 'text-[#f6e05e]'}`} />
+                <span>{headlightsOn ? 'Reflektory Włączone' : 'Włącz Światła Reflektorów'}</span>
+              </button>
+            </div>
 
-                  {/* Заголовок и значение */}
-                  <h3 className="text-gray-400 text-xs uppercase tracking-widest font-medium mb-1">
-                    {spec.title}
-                  </h3>
-                  <p className={`text-xl font-bold mb-2 transition-colors ${
-                    isWarning
-                      ? 'text-amber-200 group-hover:text-amber-300'
-                      : 'text-white group-hover:text-[#f6e05e]'
-                  }`}>
-                    {spec.value}
-                  </p>
+            {/* Szybkie kluczowe cechy */}
+            <div className="grid grid-cols-3 gap-4 pt-6 border-t border-white/10">
+              <div>
+                <span className="text-[11px] text-gray-400 block font-semibold">PRZEBIEG</span>
+                <span className="text-base sm:text-lg font-bold text-white font-num">{CAR_CONFIG.mileage}</span>
+              </div>
+              <div>
+                <span className="text-[11px] text-gray-400 block font-semibold">ROK</span>
+                <span className="text-base sm:text-lg font-bold text-white font-num">{CAR_CONFIG.year} r.</span>
+              </div>
+              <div>
+                <span className="text-[11px] text-gray-400 block font-semibold">SPALANIE</span>
+                <span className="text-base sm:text-lg font-bold text-[#f6e05e] font-num">{CAR_CONFIG.fuelConsumption}</span>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Prawa kolumna: Główna Fotografia Pojazdu z Efektem Światła */}
+          <div className="lg:col-span-6 relative">
+            <div className="relative group rounded-3xl overflow-hidden border border-[#d4af37]/40 shadow-[0_20px_60px_rgba(0,0,0,0.8)]">
+              
+              {/* Headlight Beams Glow Overlay */}
+              {headlightsOn && (
+                <>
+                  <div className="headlight-cone-left" />
+                  <div className="headlight-cone-right" />
+                  <div className="absolute inset-0 bg-radial from-[#d4af37]/20 via-transparent to-black/70 pointer-events-none z-10" />
+                </>
+              )}
+
+              <img
+                src={heroImage}
+                alt="Citroën C4 Picasso 2007"
+                referrerPolicy="no-referrer"
+                className="w-full h-[340px] sm:h-[450px] object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+              />
+
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent pointer-events-none" />
+
+              {/* Tag na zdjęciu */}
+              <div className="absolute bottom-5 left-5 right-5 flex items-center justify-between text-xs z-20">
+                <div className="flex items-center gap-2 bg-black/70 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-white/15">
+                  <MapPin className="w-4 h-4 text-[#f6e05e]" />
+                  <span className="font-semibold text-white">{CAR_CONFIG.location}</span>
                 </div>
 
-                {/* Описание внизу */}
-                <p className={`text-xs font-light border-t pt-3 mt-2 ${
-                  isWarning
-                    ? 'text-amber-200/80 border-amber-500/20'
-                    : 'text-gray-400 border-white/5'
-                }`}>
-                  {spec.subtext}
-                </p>
-              </motion.div>
-            );
-          })}
+                <button
+                  onClick={() => {
+                    audioSynth.playClick();
+                    setSelectedImageIndex(0);
+                  }}
+                  className="px-3.5 py-1.5 rounded-xl bg-[#d4af37] text-black font-bold flex items-center gap-1.5 hover:bg-[#f6e05e] transition-all shadow-lg"
+                >
+                  <Eye className="w-4 h-4" />
+                  <span>Powiększ</span>
+                </button>
+              </div>
+
+            </div>
+          </div>
+
         </div>
       </section>
 
       {/* =========================================================================
-          5. ТЕХНИЧЕСКИЙ ПАСПОРТ И VIN (DANE TECHNICZNE)
+          4. INTERAKTYWNA STREFA DŹWIĘKOWA (AUDIO DASHBOARD)
          ========================================================================= */}
-      <section className="py-16 px-4 sm:px-8 md:px-12 max-w-7xl mx-auto z-10 relative">
-        <div className="glass-card rounded-3xl p-6 sm:p-10 border border-[#d4af37]/20 relative overflow-hidden">
+      <section className="py-12 px-4 sm:px-8 md:px-12 max-w-7xl mx-auto z-10 relative">
+        <AudioDashboard />
+      </section>
+
+      {/* =========================================================================
+          5. SPECYFIKACJA TECHNICZNA POJAZDU
+         ========================================================================= */}
+      <section id="dane-techniczne" className="py-16 px-4 sm:px-8 md:px-12 max-w-7xl mx-auto z-10 relative">
+        
+        <div className="glass-card p-8 sm:p-12 rounded-3xl border border-[#d4af37]/30 shadow-2xl">
           
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8 border-b border-white/10 pb-6">
             <div>
               <span className="text-xs uppercase tracking-widest text-[#d4af37] font-semibold block mb-1">
                 Specyfikacja Fabryczna
               </span>
-              <h3 className="text-2xl sm:text-3xl font-bold font-display text-white">
+              <h3 className="text-2xl sm:text-3xl font-bold font-syne text-white">
                 Dane Techniczne Pojazdu
               </h3>
             </div>
 
-            {/* Кнопка копирования VIN */}
-            <div className="w-full md:w-auto bg-black/40 p-3 rounded-2xl border border-white/10 flex items-center justify-between gap-4">
+            {/* Kopiowanie VIN */}
+            <div className="w-full md:w-auto bg-black/40 p-3.5 rounded-2xl border border-white/10 flex items-center justify-between gap-4">
               <div>
-                <span className="text-[10px] text-gray-400 uppercase tracking-widest block">Numer VIN</span>
-                <span className="font-mono text-sm font-bold text-[#f6e05e] tracking-wider">{CAR_CONFIG.vin}</span>
+                <span className="text-[10px] text-gray-400 uppercase tracking-widest block font-bold">Numer VIN</span>
+                <span className="font-num text-sm font-bold text-[#f6e05e] tracking-wider">{CAR_CONFIG.vin}</span>
               </div>
               <button
                 onClick={handleCopyVin}
-                className="px-3 py-2 rounded-xl bg-[#d4af37]/20 border border-[#d4af37]/40 text-[#d4af37] hover:bg-[#d4af37] hover:text-black transition-all text-xs font-semibold flex items-center gap-1.5"
+                className="px-3.5 py-2 rounded-xl bg-[#d4af37]/20 border border-[#d4af37]/40 text-[#f6e05e] hover:bg-[#d4af37] hover:text-black transition-all text-xs font-semibold flex items-center gap-1.5"
               >
-                {copiedVin ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                {copiedVin ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
                 <span>{copiedVin ? 'Skopiowano!' : 'Kopiuj'}</span>
               </button>
             </div>
           </div>
 
-          {/* Таблица технических параметров */}
+          {/* Grid specyfikacji */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 text-sm">
-            <div className="p-4 rounded-xl bg-white/5 border border-white/5">
-              <span className="text-xs text-gray-400 block mb-1">Marka & Model</span>
-              <span className="font-semibold text-white">{CAR_CONFIG.brand} {CAR_CONFIG.model}</span>
-            </div>
-            <div className="p-4 rounded-xl bg-white/5 border border-white/5">
-              <span className="text-xs text-gray-400 block mb-1">Rok Produkcji</span>
-              <span className="font-semibold text-white">{CAR_CONFIG.year} r.</span>
-            </div>
-            <div className="p-4 rounded-xl bg-white/5 border border-white/5">
-              <span className="text-xs text-gray-400 block mb-1">Silnik</span>
-              <span className="font-semibold text-white">{CAR_CONFIG.engine}</span>
-            </div>
-            <div className="p-4 rounded-xl bg-white/5 border border-white/5">
-              <span className="text-xs text-gray-400 block mb-1">Pojemność Skokowa</span>
-              <span className="font-semibold text-white">1560 cm³</span>
-            </div>
-            <div className="p-4 rounded-xl bg-white/5 border border-white/5">
-              <span className="text-xs text-gray-400 block mb-1">Przebieg</span>
-              <span className="font-semibold text-white">{CAR_CONFIG.mileage}</span>
-            </div>
-            <div className="p-4 rounded-xl bg-white/5 border border-white/5">
-              <span className="text-xs text-gray-400 block mb-1">Kolor Nadwozia</span>
-              <span className="font-semibold text-white">{CAR_CONFIG.color}</span>
-            </div>
-            <div className="p-4 rounded-xl bg-white/5 border border-white/5">
-              <span className="text-xs text-gray-400 block mb-1">Typ Nadwozia</span>
-              <span className="font-semibold text-white">{CAR_CONFIG.bodyType}</span>
-            </div>
-            <div className="p-4 rounded-xl bg-white/5 border border-white/5">
-              <span className="text-xs text-gray-400 block mb-1">Skrzynia Biegów</span>
-              <span className="font-semibold text-white">{CAR_CONFIG.transmission}</span>
-            </div>
+            {[
+              { label: 'Marka & Model', val: `${CAR_CONFIG.brand} ${CAR_CONFIG.model}` },
+              { label: 'Rok Produkcji', val: `${CAR_CONFIG.year} r.` },
+              { label: 'Silnik', val: CAR_CONFIG.engine },
+              { label: 'Pojemność Skokowa', val: '1560 cm³' },
+              { label: 'Przebieg', val: CAR_CONFIG.mileage },
+              { label: 'Kolor Nadwozia', val: CAR_CONFIG.color },
+              { label: 'Typ Nadwozia', val: CAR_CONFIG.bodyType },
+              { label: 'Skrzynia Biegów', val: CAR_CONFIG.transmission },
+            ].map((spec, idx) => (
+              <div key={idx} className="p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-[#d4af37]/30 transition-all">
+                <span className="text-xs text-gray-400 block mb-1">{spec.label}</span>
+                <span className="font-semibold text-white font-display">{spec.val}</span>
+              </div>
+            ))}
           </div>
 
         </div>
@@ -1068,7 +967,7 @@ export default function App() {
       <section id="wyposazenie" className="py-16 px-4 sm:px-8 md:px-12 max-w-7xl mx-auto z-10 relative">
         
         <div className="heading-h2-container">
-          <h2 className="heading-h2">
+          <h2 className="heading-h2 font-syne">
             Kompletne Wyposażenie
           </h2>
         </div>
@@ -1085,11 +984,11 @@ export default function App() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: idx * 0.1 }}
-              className="glass-card p-6 rounded-2xl border border-white/10 hover:border-[#d4af37]/30"
+              className="glass-card p-6 rounded-3xl border border-white/10 hover:border-[#d4af37]/40"
             >
               <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
                 <div className="w-3 h-3 rounded-full bg-[#d4af37]" />
-                <h3 className="text-lg font-bold text-white font-display">
+                <h3 className="text-lg font-bold text-white font-syne">
                   {cat.category}
                 </h3>
               </div>
@@ -1097,7 +996,7 @@ export default function App() {
               <ul className="space-y-3 text-sm text-gray-300">
                 {cat.items.map((item, i) => (
                   <li key={i} className="flex items-start gap-2.5">
-                    <CheckCircle2 className="w-4 h-4 text-[#d4af37] shrink-0 mt-0.5" />
+                    <CheckCircle2 className="w-4 h-4 text-[#f6e05e] shrink-0 mt-0.5" />
                     <span>{item}</span>
                   </li>
                 ))}
@@ -1108,26 +1007,26 @@ export default function App() {
       </section>
 
       {/* =========================================================================
-          7. ГАЛЕРЕЯ ФОТОГРАФИЙ (GALERIA ZDJĘĆ)
+          7. LUKSUSOWA GALERIA ZDJĘĆ HD (BENTO GRID)
          ========================================================================= */}
       <section id="galeria" className="py-16 px-4 sm:px-8 md:px-12 max-w-7xl mx-auto z-10 relative">
         
         <div className="text-center mb-4">
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#d4af37]/15 border border-[#d4af37]/30 text-[#f6e05e] text-xs font-bold uppercase tracking-wider mb-3">
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#d4af37]/15 border border-[#d4af37]/30 text-[#f6e05e] text-xs font-bold uppercase tracking-wider mb-3 font-num">
             <Camera className="w-3.5 h-3.5" />
-            Fotogaleria HD
+            Fotogaleria HD (Bento Layout)
           </span>
           <div className="heading-h2-container">
-            <h2 className="heading-h2">
+            <h2 className="heading-h2 font-syne">
               Galeria Pojazdu
             </h2>
           </div>
           <p className="text-gray-400 max-w-xl mx-auto text-sm font-light mt-2">
-            Kliknij dowolne zdjęcie, aby otworzyć pełnoekranowy podgląd w wysokiej rozdzielczości.
+            Kliknij dowolne zdjęcie, aby otworzyć luksusowy pełnoekranowy podgląd w wysokiej rozdzielczości.
           </p>
         </div>
 
-        {/* Фильтры категорий и кнопка добавления фото */}
+        {/* Filtry kategorii i przycisk właściciela */}
         <div className="flex items-center justify-between gap-4 my-8 flex-wrap">
           <div className="flex items-center gap-2.5 flex-wrap">
             {['Wszystkie', 'Nadwozie', 'Wnętrze', 'Detale'].map((cat) => {
@@ -1139,8 +1038,11 @@ export default function App() {
               return (
                 <button
                   key={cat}
-                  onClick={() => setGalleryFilter(cat)}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 flex items-center gap-2 border ${
+                  onClick={() => {
+                    audioSynth.playClick();
+                    setGalleryFilter(cat);
+                  }}
+                  className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all duration-300 flex items-center gap-2 border ${
                     isActive
                       ? 'bg-gradient-to-r from-[#f6e05e] via-[#d4af37] to-[#b8860b] text-black border-[#f6e05e] shadow-[0_0_20px_rgba(212,175,55,0.35)] scale-105'
                       : 'bg-black/40 text-gray-300 hover:text-white hover:bg-white/10 border-white/10 hover:border-[#d4af37]/40'
@@ -1159,8 +1061,11 @@ export default function App() {
 
           {isAdmin && (
             <button
-              onClick={() => setIsPhotoManagerOpen(true)}
-              className="px-4 py-2 rounded-xl text-xs font-bold bg-[#d4af37]/20 text-[#f6e05e] border border-[#d4af37]/50 hover:bg-[#d4af37] hover:text-black transition-all duration-300 flex items-center gap-2 shadow-lg hover:shadow-[#d4af37]/20"
+              onClick={() => {
+                audioSynth.playClick();
+                setIsPhotoManagerOpen(true);
+              }}
+              className="px-4 py-2.5 rounded-2xl text-xs font-bold bg-[#d4af37]/20 text-[#f6e05e] border border-[#d4af37]/50 hover:bg-[#d4af37] hover:text-black transition-all duration-300 flex items-center gap-2 shadow-lg hover:shadow-[#d4af37]/20"
             >
               <Upload className="w-4 h-4" />
               <span>Dodaj / Zarządzaj zdjęciami</span>
@@ -1168,19 +1073,24 @@ export default function App() {
           )}
         </div>
 
-        {/* Сетка фотографий */}
+        {/* Bento Grid Gallery */}
         {filteredGallery.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredGallery.map((img) => (
+            {filteredGallery.map((img, idx) => (
               <motion.div
-                key={img.id}
+                key={img.id || idx}
                 layout
-                initial={{ opacity: 0, scale: 0.9 }}
+                initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.4 }}
-                onClick={() => setSelectedImageIndex(gallery.findIndex(g => g.id === img.id))}
-                className="glass-card rounded-2xl overflow-hidden group cursor-pointer border border-white/10 hover:border-[#f6e05e]/60 hover:shadow-[0_12px_35px_rgba(212,175,55,0.22)] transition-all duration-500 relative aspect-[4/3] flex flex-col justify-between"
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.3 }}
+                onClick={() => {
+                  audioSynth.playClick();
+                  setSelectedImageIndex(gallery.findIndex(g => g.id === img.id));
+                }}
+                className={`glass-card rounded-3xl overflow-hidden group cursor-pointer border border-white/10 hover:border-[#f6e05e]/60 hover:shadow-[0_12px_40px_rgba(212,175,55,0.25)] transition-all duration-500 relative flex flex-col justify-between ${
+                  idx % 5 === 0 ? 'sm:col-span-2 aspect-[16/9]' : 'aspect-[4/3]'
+                }`}
               >
                 <img 
                   src={img.src} 
@@ -1189,37 +1099,35 @@ export default function App() {
                   className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
                 />
 
-                {/* Постоянная верхняя плашка: категория */}
-                <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none z-10">
-                  <span className="px-2.5 py-1 rounded-lg bg-black/65 backdrop-blur-md border border-white/15 text-[#f6e05e] text-[10px] font-bold uppercase tracking-wider shadow-md">
+                <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none z-10">
+                  <span className="px-3 py-1 rounded-xl bg-black/70 backdrop-blur-md border border-white/15 text-[#f6e05e] text-[10px] font-bold uppercase tracking-wider shadow-md">
                     {img.category}
                   </span>
 
-                  <div className="flex items-center gap-1.5 pointer-events-auto">
+                  <div className="flex items-center gap-2 pointer-events-auto">
                     {isAdmin && (
                       <button
                         onClick={(e) => handleDeleteImage(img.id, e)}
                         title="Usuń zdjęcie z galerii"
-                        className="p-1.5 rounded-lg bg-red-600/80 hover:bg-red-600 backdrop-blur-md text-white transition-all hover:scale-110 shadow-md"
+                        className="p-2 rounded-xl bg-red-600/80 hover:bg-red-600 backdrop-blur-md text-white transition-all hover:scale-110 shadow-md"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     )}
-                    <div className="p-1.5 rounded-lg bg-black/65 backdrop-blur-md border border-white/15 text-white group-hover:bg-[#d4af37] group-hover:text-black transition-all duration-300 shadow-md">
+                    <div className="p-2 rounded-xl bg-black/70 backdrop-blur-md border border-white/15 text-white group-hover:bg-[#d4af37] group-hover:text-black transition-all duration-300 shadow-md">
                       <Maximize2 className="w-3.5 h-3.5" />
                     </div>
                   </div>
                 </div>
 
-                {/* Нижний оверлей градиент при наведении */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent opacity-80 group-hover:opacity-95 transition-opacity duration-300 flex flex-col justify-end p-4 pointer-events-none">
-                  <div className="transform translate-y-1 group-hover:translate-y-0 transition-transform duration-300">
-                    <h4 className="text-white text-base font-bold font-display group-hover:text-[#f6e05e] transition-colors">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 group-hover:opacity-95 transition-opacity duration-300 flex flex-col justify-end p-5 pointer-events-none">
+                  <div>
+                    <h4 className="text-white text-base sm:text-lg font-bold font-syne group-hover:text-[#f6e05e] transition-colors">
                       {img.title}
                     </h4>
                     <span className="text-[11px] text-gray-300 font-light flex items-center gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       <Sparkles className="w-3 h-3 text-[#f6e05e]" />
-                      Powiększ zdjęcie HD
+                      Otwórz pełnoekranowy podgląd HD
                     </span>
                   </div>
                 </div>
@@ -1228,26 +1136,13 @@ export default function App() {
           </div>
         ) : (
           <div className="glass-card rounded-3xl p-12 text-center border border-dashed border-white/20 my-4 flex flex-col items-center justify-center">
-            <div className="w-16 h-16 rounded-full bg-[#d4af37]/10 text-[#d4af37] border border-[#d4af37]/30 flex items-center justify-center mb-4">
-              <Car className="w-8 h-8 text-[#d4af37]" />
-            </div>
-            <h3 className="text-xl font-bold text-white mb-2 font-display">
+            <Car className="w-10 h-10 text-[#d4af37] mb-3" />
+            <h3 className="text-xl font-bold text-white mb-2 font-syne">
               Brak zdjęć w tej kategorii
             </h3>
-            <p className="text-xs text-gray-400 max-w-md mb-6">
-              {isAdmin 
-                ? "Galeria jest obecnie pusta. Jako właściciel możesz w każdej chwili dodać własne zdjęcia samochodu."
-                : "W tej kategorii nie ma obecnie opublikowanych zdjęć."}
+            <p className="text-xs text-gray-400 max-w-md">
+              Przełącz kategorię na "Wszystkie", aby zobaczyć pełną fotogalerię.
             </p>
-            {isAdmin && (
-              <button
-                onClick={() => setIsPhotoManagerOpen(true)}
-                className="px-6 py-3 rounded-xl bg-[#d4af37] text-black font-bold text-xs hover:bg-[#f6e05e] transition-all shadow-lg shadow-[#d4af37]/20 flex items-center gap-2"
-              >
-                <ImagePlus className="w-4 h-4" />
-                <span>Dodaj pierwsze zdjęcie</span>
-              </button>
-            )}
           </div>
         )}
       </section>
@@ -1256,34 +1151,31 @@ export default function App() {
           8. HISTORIA POJAZDU & RAPORT CEPIK
          ========================================================================= */}
       <section id="serwis" className="py-16 px-4 sm:px-8 md:px-12 max-w-7xl mx-auto z-10 relative">
-        
         <div className="heading-h2-container">
-          <h2 className="heading-h2">
-            Historia Pojazdu & Raport CEPiK
+          <h2 className="heading-h2 font-syne">
+            Historia Pojazdu & CEPiK
           </h2>
         </div>
 
         <p className="text-center text-gray-400 max-w-2xl mx-auto mb-12 -mt-4 text-sm font-light">
-          Oficjalna, transparentna historia rejestracyjna i diagnostyczna z Krajowego Rejestru Pojazdów CEPiK wraz z udokumentowanym przebiegiem.
+          Oficjalna, transparentna historia rejestracyjna z Krajowego Rejestru Pojazdów CEPiK.
         </p>
 
         <CepikHistory onOpenTestDrive={() => setIsTestDriveOpen(true)} />
-
       </section>
 
       {/* =========================================================================
-          9. ПОДРОБНОЕ ОПИСАНИЕ С ВЛАДЕЛЬЦЕМ (OPIS SAMOCHODU)
+          9. SŁOWO OD WŁAŚCICIELA (OPIS SAMOCHODU)
          ========================================================================= */}
       <section id="opis" className="py-16 px-4 sm:px-8 md:px-12 max-w-7xl mx-auto z-10 relative">
-        <div className="glass-card rounded-3xl p-8 sm:p-12 border border-[#d4af37]/20 relative">
-          
+        <div className="glass-card rounded-3xl p-8 sm:p-12 border border-[#d4af37]/30 relative shadow-2xl">
           <div className="max-w-3xl mx-auto space-y-6">
-            <div className="flex items-center gap-3 text-[#d4af37] mb-2">
+            <div className="flex items-center gap-3 text-[#f6e05e] mb-2">
               <Info className="w-6 h-6" />
-              <span className="text-xs font-bold uppercase tracking-widest">Słowo od właściciela</span>
+              <span className="text-xs font-bold uppercase tracking-widest font-num">Słowo od właściciela</span>
             </div>
 
-            <h3 className="text-2xl sm:text-4xl font-bold font-display text-white italic">
+            <h3 className="text-2xl sm:text-4xl font-bold font-syne text-white italic">
               „Samochód, który nigdy nie zawiódł mojej rodziny.”
             </h3>
 
@@ -1293,25 +1185,22 @@ export default function App() {
               ))}
             </div>
 
-            {/* Карточка подписи продавца */}
             <div className="pt-6 border-t border-white/10 flex items-center justify-between">
               <div>
-                <span className="text-sm font-bold text-white block">{CAR_CONFIG.seller.name}</span>
+                <span className="text-sm font-bold text-white block font-syne">{CAR_CONFIG.seller.name}</span>
                 <span className="text-xs text-gray-400">Prywatny Właściciel • {CAR_CONFIG.seller.city}</span>
               </div>
             </div>
           </div>
-
         </div>
       </section>
 
       {/* =========================================================================
-          10. ЧASTO ZADAWANE PYTANIA (FAQ ACCORDION)
+          10. FAQ ACCORDION
          ========================================================================= */}
       <section className="py-16 px-4 sm:px-8 md:px-12 max-w-4xl mx-auto z-10 relative">
-        
         <div className="heading-h2-container">
-          <h2 className="heading-h2">
+          <h2 className="heading-h2 font-syne">
             Pytania i Odpowiedzi
           </h2>
         </div>
@@ -1323,13 +1212,16 @@ export default function App() {
               className="glass-card rounded-2xl overflow-hidden border border-white/10"
             >
               <button
-                onClick={() => setActiveFaq(activeFaq === index ? null : index)}
+                onClick={() => {
+                  audioSynth.playClick();
+                  setActiveFaq(activeFaq === index ? null : index);
+                }}
                 className="w-full p-6 text-left flex items-center justify-between gap-4 hover:bg-white/5 transition-colors"
               >
-                <span className="font-semibold text-white text-base font-display">
+                <span className="font-semibold text-white text-base font-syne">
                   {faq.question}
                 </span>
-                <ChevronDown className={`w-5 h-5 text-[#d4af37] transition-transform duration-300 ${activeFaq === index ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-5 h-5 text-[#f6e05e] transition-transform duration-300 ${activeFaq === index ? 'rotate-180' : ''}`} />
               </button>
 
               <AnimatePresence>
@@ -1351,33 +1243,31 @@ export default function App() {
       </section>
 
       {/* =========================================================================
-          11. БЛОК СВЯЗИ / ЗАПИСИ (KONTAKT SECTION)
+          11. KONTAKT SECTION
          ========================================================================= */}
       <section id="kontakt" className="py-20 px-4 sm:px-8 md:px-12 max-w-7xl mx-auto z-10 relative">
         <div className="max-w-2xl mx-auto text-center space-y-6">
-          <span className="text-xs uppercase tracking-widest text-[#d4af37] font-semibold block">
+          <span className="text-xs uppercase tracking-widest text-[#d4af37] font-semibold block font-num">
             Bezpośredni Kontakt
           </span>
-          <h2 className="text-3xl sm:text-5xl font-bold font-display text-white leading-tight">
+          <h2 className="text-3xl sm:text-5xl font-bold font-syne text-white leading-tight">
             Zainteresowany? Porozmawiajmy.
           </h2>
           <p className="text-gray-300 font-light text-sm">
-            Zapraszam na oględziny i jazdę próbną w Warszawie. Skontaktuj się ze mną przez Telegram, WhatsApp, Facebook lub telefonicznie.
+            Zapraszam na oględziny w Warszawie. Skontaktuj się bezpośrednio ze mną.
           </p>
 
           <div className="space-y-3 pt-2 text-left">
-            {/* Telegram Card */}
             <a
               href={CAR_CONFIG.seller.telegramUrl}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => audioSynth.playClick()}
               className="p-4 rounded-2xl glass-card flex items-center justify-between gap-4 group hover:border-[#229ED9]/60 hover:bg-[#229ED9]/10 transition-all duration-300"
             >
               <div className="flex items-center gap-3.5">
                 <div className="w-10 h-10 rounded-xl bg-[#229ED9]/20 border border-[#229ED9]/40 flex items-center justify-center text-[#229ED9] group-hover:scale-110 transition-transform">
-                  <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
-                  </svg>
+                  <Send className="w-5 h-5" />
                 </div>
                 <div>
                   <span className="text-xs text-gray-400 block">Szybka Wiadomość</span>
@@ -1386,233 +1276,174 @@ export default function App() {
                   </span>
                 </div>
               </div>
-              <span className="px-3.5 py-1.5 rounded-lg bg-[#229ED9]/20 border border-[#229ED9]/40 text-xs font-semibold text-[#229ED9] group-hover:bg-[#229ED9] group-hover:text-white transition-all">
+              <span className="px-3.5 py-1.5 rounded-xl bg-[#229ED9]/20 border border-[#229ED9]/40 text-xs font-semibold text-[#229ED9] group-hover:bg-[#229ED9] group-hover:text-white transition-all">
                 Otwórz
               </span>
             </a>
 
-            {/* WhatsApp Card */}
             <a
-              href={CAR_CONFIG.seller.whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-4 rounded-2xl glass-card flex items-center justify-between gap-4 group hover:border-[#25D366]/60 hover:bg-[#25D366]/10 transition-all duration-300"
+              href={`tel:${CAR_CONFIG.seller.phone.replace(/\s+/g, '')}`}
+              onClick={() => audioSynth.playClick()}
+              className="p-4 rounded-2xl glass-card flex items-center justify-between gap-4 group hover:border-[#f6e05e]/60 hover:bg-[#d4af37]/10 transition-all duration-300"
             >
               <div className="flex items-center gap-3.5">
-                <div className="w-10 h-10 rounded-xl bg-[#25D366]/20 border border-[#25D366]/40 flex items-center justify-center text-[#25D366] group-hover:scale-110 transition-transform">
-                  <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                    <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984 0 1.764.459 3.486 1.333 5.003L2 22l5.129-1.341a9.96 9.96 0 004.881 1.28h.004c5.506 0 9.989-4.478 9.99-9.985A9.957 9.957 0 0012.012 2zm.004 18.256h-.003a8.27 8.27 0 01-4.218-1.156l-.302-.18-3.13.818.835-3.048-.198-.314a8.28 8.28 0 01-1.272-4.391c0-4.568 3.719-8.286 8.289-8.286 2.213 0 4.293.863 5.857 2.428a8.232 8.232 0 012.425 5.858c-.001 4.569-3.72 8.287-8.287 8.287z"/>
-                  </svg>
+                <div className="w-10 h-10 rounded-xl bg-[#d4af37]/20 border border-[#d4af37]/40 flex items-center justify-center text-[#f6e05e] group-hover:scale-110 transition-transform">
+                  <Phone className="w-5 h-5" />
                 </div>
                 <div>
-                  <span className="text-xs text-gray-400 block">Czat 24/7</span>
-                  <span className="text-base font-bold text-white group-hover:text-[#25D366] transition-colors">
-                    WhatsApp
+                  <span className="text-xs text-gray-400 block">Telefon Bezpośredni</span>
+                  <span className="text-base font-bold text-white group-hover:text-[#f6e05e] transition-colors font-num">
+                    {CAR_CONFIG.seller.phone}
                   </span>
                 </div>
               </div>
-              <span className="px-3.5 py-1.5 rounded-lg bg-[#25D366]/20 border border-[#25D366]/40 text-xs font-semibold text-[#25D366] group-hover:bg-[#25D366] group-hover:text-white transition-all">
-                Otwórz
+              <span className="px-3.5 py-1.5 rounded-xl bg-[#d4af37]/20 border border-[#d4af37]/40 text-xs font-semibold text-[#f6e05e] group-hover:bg-[#d4af37] group-hover:text-black transition-all">
+                Zadzwoń
               </span>
             </a>
+          </div>
 
-            {/* Facebook Card */}
-            <a
-              href={CAR_CONFIG.seller.facebookUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-4 rounded-2xl glass-card flex items-center justify-between gap-4 group hover:border-[#1877F2]/60 hover:bg-[#1877F2]/10 transition-all duration-300"
-            >
-              <div className="flex items-center gap-3.5">
-                <div className="w-10 h-10 rounded-xl bg-[#1877F2]/20 border border-[#1877F2]/40 flex items-center justify-center text-[#1877F2] group-hover:scale-110 transition-transform">
-                  <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                    <path d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.989C18.343 21.129 22 16.99 22 12c0-5.523-4.477-10-10-10z"/>
-                  </svg>
+          {/* Formularz Wiadomości */}
+          <div className="pt-8 text-left">
+            <div className="glass-card p-6 sm:p-8 rounded-3xl border border-white/10">
+              <h3 className="text-lg font-bold text-white font-syne mb-4">
+                Wyślij Wiadomość do Właściciela
+              </h3>
+
+              {contactSuccess ? (
+                <div className="p-6 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-center space-y-2">
+                  <CheckCircle2 className="w-10 h-10 mx-auto text-emerald-400" />
+                  <h4 className="font-bold text-base">Wiadomość została wysłana!</h4>
+                  <p className="text-xs">Właściciel odpowie najszybciej jak to możliwe.</p>
                 </div>
-                <div>
-                  <span className="text-xs text-gray-400 block">Profil i Messenger</span>
-                  <span className="text-base font-bold text-white group-hover:text-[#1877F2] transition-colors">
-                    Facebook
-                  </span>
-                </div>
-              </div>
-              <span className="px-3.5 py-1.5 rounded-lg bg-[#1877F2]/20 border border-[#1877F2]/40 text-xs font-semibold text-[#1877F2] group-hover:bg-[#1877F2] group-hover:text-white transition-all">
-                Otwórz
-              </span>
-            </a>
+              ) : (
+                <form onSubmit={handleContactSubmit} className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Twoje Imię</label>
+                      <input 
+                        type="text"
+                        required
+                        placeholder="np. Piotr"
+                        value={contactMessage.name}
+                        onChange={(e) => setContactMessage({ ...contactMessage, name: e.target.value })}
+                        className="w-full px-4 py-2.5 rounded-xl bg-black/50 border border-white/10 text-white text-sm focus:border-[#d4af37] focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Numer Telefonu</label>
+                      <input 
+                        type="tel"
+                        required
+                        placeholder="+48 ___ ___ ___"
+                        value={contactMessage.phone}
+                        onChange={(e) => setContactMessage({ ...contactMessage, phone: e.target.value })}
+                        className="w-full px-4 py-2.5 rounded-xl bg-black/50 border border-white/10 text-white text-sm focus:border-[#d4af37] focus:outline-none"
+                      />
+                    </div>
+                  </div>
 
-            <div className="p-4 rounded-2xl glass-card flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#d4af37]/20 flex items-center justify-center text-[#d4af37]">
-                <MapPin className="w-5 h-5" />
-              </div>
-              <div>
-                <span className="text-xs text-gray-400 block">Miejsce Oględzin</span>
-                <span className="text-sm font-bold text-[#f5f5f5]">{CAR_CONFIG.seller.city}</span>
-              </div>
-            </div>
+                  <div>
+                    <label className="text-xs text-gray-400 block mb-1">Treść Wiadomości</label>
+                    <textarea 
+                      rows={3}
+                      required
+                      placeholder="Dzień dobry, chciałbym zapytać o..."
+                      value={contactMessage.message}
+                      onChange={(e) => setContactMessage({ ...contactMessage, message: e.target.value })}
+                      className="w-full px-4 py-2.5 rounded-xl bg-black/50 border border-white/10 text-white text-sm focus:border-[#d4af37] focus:outline-none"
+                    />
+                  </div>
 
-            <div className="p-4 rounded-2xl glass-card flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#d4af37]/20 flex items-center justify-center text-[#d4af37]">
-                <Clock className="w-5 h-5" />
-              </div>
-              <div>
-                <span className="text-xs text-gray-400 block">Godziny Kontaktu</span>
-                <span className="text-sm font-bold text-[#f5f5f5]">{CAR_CONFIG.seller.workingHours}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* =========================================================================
-          12. СТРУКТУРНЫЙ И КРАСИВЫЙ ПОДВАЛ (FOOTER)
-         ========================================================================= */}
-      <footer className="bg-[#050505] border-t border-white/10 px-6 sm:px-10 pt-[60px] pb-[100px] md:pb-[60px] text-gray-400 z-10 relative">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
-          
-          {/* Колонка 1: Название i описание */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Car className="w-6 h-6 text-[#d4af37]" />
-              <span className="text-xl font-bold font-display tracking-wider text-white">
-                <span className="gold-shimmer-text">citroen</span>c4<span className="text-[#f6e05e] italic">picasso</span><span className="text-[#d4af37]">.pl</span>
-              </span>
-            </div>
-          </div>
-
-          {/* Колонка 2: Меню с золотыми точками-маркерами */}
-          <div className="space-y-4">
-            <h4 className="text-white text-base font-bold font-display tracking-wider border-b border-white/10 pb-2">
-              Szybka Nawigacja
-            </h4>
-            <ul className="space-y-2.5 text-sm">
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#d4af37]" />
-                <a href="#" className="hover:text-[#d4af37] transition-colors">Strona Główna</a>
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#d4af37]" />
-                <a href="#galeria" className="hover:text-[#d4af37] transition-colors">Galeria Zdjęć</a>
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#d4af37]" />
-                <a href="#serwis" className="hover:text-[#d4af37] transition-colors">Historia Serwisowa</a>
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#d4af37]" />
-                <a href="#wyposazenie" className="hover:text-[#d4af37] transition-colors">Wyposażenie</a>
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#d4af37]" />
-                <a href="#kontakt" className="hover:text-[#d4af37] transition-colors">Kontakt</a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Колонка 3: Контакты i иконки соцсетей (используем emoji/unicode иконки) */}
-          <div className="space-y-4">
-            <h4 className="text-white text-base font-bold font-display tracking-wider border-b border-white/10 pb-2">
-              Kontakt & Portale
-            </h4>
-            <div className="space-y-2 text-sm">
-              <p className="flex items-center gap-2 text-gray-300">
-                <span className="text-[#d4af37]">💬</span>
-                <span>Komunikatory: Telegram / WhatsApp / FB</span>
-              </p>
-              <p className="flex items-center gap-2 text-gray-300">
-                <span className="text-[#d4af37]">✉️</span>
-                <span>E-mail: {CAR_CONFIG.seller.email}</span>
-              </p>
-              <p className="flex items-center gap-2 text-gray-300">
-                <span className="text-[#d4af37]">📍</span>
-                <span>{CAR_CONFIG.seller.city}</span>
-              </p>
-            </div>
-
-            {/* Соцсети в виде юникод-иконок */}
-            <div className="pt-2 flex items-center gap-3">
-              <a 
-                href={CAR_CONFIG.seller.olxUrl} 
-                target="_blank" 
-                rel="noreferrer"
-                className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs font-bold text-gray-200 hover:text-[#d4af37] hover:border-[#d4af37] transition-all"
-              >
-                🌐 OLX
-              </a>
-              <a 
-                href={CAR_CONFIG.seller.facebookUrl} 
-                target="_blank" 
-                rel="noreferrer"
-                className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs font-bold text-gray-200 hover:text-[#d4af37] hover:border-[#d4af37] transition-all"
-              >
-                📘 Facebook
-              </a>
-              <a 
-                href={CAR_CONFIG.seller.instagramUrl} 
-                target="_blank" 
-                rel="noreferrer"
-                className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs font-bold text-gray-200 hover:text-[#d4af37] hover:border-[#d4af37] transition-all"
-              >
-                📸 Instagram
-              </a>
+                  <button
+                    type="submit"
+                    disabled={contactSubmitting}
+                    className="w-full py-3.5 rounded-xl cta-button font-bold text-sm flex items-center justify-center gap-2"
+                  >
+                    {contactSubmitting ? (
+                      <Loader2 className="w-4 h-4 animate-spin text-black" />
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4 text-black" />
+                        <span>Wyślij Wiadomość</span>
+                      </>
+                    )}
+                  </button>
+                </form>
+              )}
             </div>
           </div>
 
         </div>
+      </section>
 
-        {/* Тонкая золотая линия и авторские права */}
-        <div className="max-w-7xl mx-auto pt-8 border-t border-[#d4af37]/20 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-500 gap-4">
-          <p>© 2026. Wszystkie prawa zastrzeżone.</p>
-          <p className="text-gray-400">Ogłoszenie Prywatne • Citroën C4 Picasso 2007</p>
+      {/* FOOTER */}
+      <footer className="py-12 border-t border-white/10 bg-[#020304] z-10 relative text-center text-xs text-gray-400 space-y-3">
+        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <Car className="w-4 h-4 text-[#f6e05e]" />
+            <span className="font-syne font-bold text-white">Citroën C4 Picasso 2007 (1.6 HDi)</span>
+          </div>
+
+          <p>© {new Date().getFullYear()} Ogłoszenie Prywatne. Warszawa, Polska.</p>
+
           <button
-            onClick={() => isAdmin ? handleAdminLogout() : setIsAdminModalOpen(true)}
-            className="text-xs text-gray-500 hover:text-[#f6e05e] transition-colors flex items-center gap-1.5 py-1 px-2.5 rounded-full hover:bg-white/5 border border-transparent hover:border-white/10"
+            onClick={() => {
+              audioSynth.playClick();
+              setIsAdminModalOpen(true);
+            }}
+            className="text-gray-500 hover:text-[#f6e05e] transition-colors flex items-center gap-1 text-[11px]"
           >
-            {isAdmin ? <ShieldCheck className="w-3.5 h-3.5 text-[#f6e05e]" /> : <Lock className="w-3.5 h-3.5" />}
-            <span>{isAdmin ? "Wyłącz Tryb Właściciela" : "Panel Właściciela"}</span>
+            <Lock className="w-3 h-3" />
+            <span>Panel Właściciela</span>
           </button>
         </div>
       </footer>
 
       {/* =========================================================================
-          13. МОДАЛЬНОЕ ОКНО ЗАПИСИ НА ТЕСТ-ДРАЙВ (UMÓW JAZDĘ PRÓBNĄ)
+          12. MODAL JAZDY PRÓBNEJ
          ========================================================================= */}
       <AnimatePresence>
         {isTestDriveOpen && (
-          <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="fixed inset-0 z-[2000] bg-black/85 backdrop-blur-xl flex items-center justify-center p-4">
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="glass-card p-6 sm:p-8 rounded-3xl border border-[#d4af37]/40 max-w-md w-full relative bg-[#0a0a0f]"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="glass-card max-w-md w-full rounded-3xl p-6 sm:p-8 border border-[#d4af37]/40 shadow-2xl relative bg-[#0a0a0f]"
             >
-              <button 
-                onClick={() => setIsTestDriveOpen(false)}
-                className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white rounded-full hover:bg-white/10"
+              <button
+                onClick={() => {
+                  audioSynth.playClick();
+                  setIsTestDriveOpen(false);
+                }}
+                className="absolute top-5 right-5 p-2 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 transition-all"
               >
                 <X className="w-5 h-5" />
               </button>
 
-              <div className="text-center mb-6">
-                <div className="w-12 h-12 rounded-full bg-[#d4af37]/20 text-[#d4af37] flex items-center justify-center mx-auto mb-3">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 rounded-2xl bg-[#d4af37]/20 border border-[#d4af37]/50 flex items-center justify-center text-[#f6e05e]">
                   <Calendar className="w-6 h-6" />
                 </div>
-                <h3 className="text-2xl font-bold font-display text-white">
-                  Umów Jazdę Próbną
-                </h3>
-                <p className="text-xs text-gray-400 mt-1">
-                  Wybierz dogodny termin oględzin Citroena C4 Picasso w Warszawie.
-                </p>
+                <div>
+                  <h3 className="text-xl font-bold text-white font-syne">
+                    Umów Jazdę Próbną
+                  </h3>
+                  <p className="text-xs text-gray-400">
+                    Oględziny w Warszawie w dogodnym terminie
+                  </p>
+                </div>
               </div>
 
               {bookingSuccess ? (
-                <div className="p-6 rounded-2xl bg-[#d4af37]/20 border border-[#d4af37] text-center space-y-2">
-                  <CheckCircle2 className="w-12 h-12 text-[#d4af37] mx-auto" />
-                  <h4 className="text-lg font-bold text-white">Rezerwacja przyjęta!</h4>
-                  <p className="text-xs text-gray-300">Potwierdzę godzinę telefonicznie.</p>
+                <div className="p-6 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-center space-y-2">
+                  <CheckCircle2 className="w-10 h-10 mx-auto text-emerald-400" />
+                  <h4 className="font-bold text-base">Rezerwacja Przyjęta!</h4>
+                  <p className="text-xs">Właściciel skontaktuje się z Tobą telefonicznie.</p>
                 </div>
               ) : (
-                <form onSubmit={handleBookingSubmit} className="space-y-4 text-left">
+                <form onSubmit={handleBookingSubmit} className="space-y-4">
                   <div>
                     <label className="text-xs text-gray-400 block mb-1">Imię i Nazwisko</label>
                     <input 
@@ -1639,7 +1470,7 @@ export default function App() {
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1">Data Oględzin</label>
+                      <label className="text-xs text-gray-400 block mb-1">Data</label>
                       <input 
                         type="date"
                         required
@@ -1664,22 +1495,16 @@ export default function App() {
                     </div>
                   </div>
 
-                  <div>
-                    <label className="text-xs text-gray-400 block mb-1">Uwagi (opcjonalnie)</label>
-                    <input 
-                      type="text"
-                      placeholder="Chciałbym sprawdzić auto w stacji diagnostycznej..."
-                      value={bookingForm.comment}
-                      onChange={(e) => setBookingForm({ ...bookingForm, comment: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-xl bg-black/50 border border-white/10 text-white text-sm focus:border-[#d4af37] focus:outline-none"
-                    />
-                  </div>
-
                   <button
                     type="submit"
-                    className="w-full py-3.5 rounded-xl cta-button font-bold text-sm mt-2"
+                    disabled={bookingSubmitting}
+                    className="w-full py-3.5 rounded-xl cta-button font-bold text-sm mt-2 flex items-center justify-center gap-2"
                   >
-                    Potwierdź Rezerwację
+                    {bookingSubmitting ? (
+                      <Loader2 className="w-4 h-4 animate-spin text-black" />
+                    ) : (
+                      <span>Potwierdź Rezerwację</span>
+                    )}
                   </button>
                 </form>
               )}
@@ -1689,60 +1514,17 @@ export default function App() {
       </AnimatePresence>
 
       {/* =========================================================================
-          14. МОДАЛЬНЫЙ ПРОСМОТР ФОТОГРАФИЙ ПОЛНОЭКРАННЫЙ (LIGHTBOX)
+          13. LUKSUSOWY FULLSCREEN GALERIA MODAL (LUXURY LIGHTBOX)
          ========================================================================= */}
-      <AnimatePresence>
-        {selectedImageIndex !== null && gallery[selectedImageIndex] && (
-          <div className="fixed inset-0 z-[2500] bg-black/95 backdrop-blur-2xl flex items-center justify-center p-4">
-            
-            {/* Кнопка закрытия */}
-            <button 
-              onClick={() => setSelectedImageIndex(null)}
-              className="absolute top-6 right-6 p-3 rounded-full bg-white/10 text-white hover:bg-[#d4af37] hover:text-black transition-all z-10"
-            >
-              <X className="w-6 h-6" />
-            </button>
-
-            {/* Левая стрелка */}
-            <button 
-              onClick={() => setSelectedImageIndex((selectedImageIndex - 1 + gallery.length) % gallery.length)}
-              className="absolute left-4 sm:left-8 p-3 rounded-full bg-white/10 text-white hover:bg-[#d4af37] hover:text-black transition-all z-10"
-            >
-              <ChevronLeft className="w-6 h-6" />
-            </button>
-
-            {/* Изображение */}
-            <div className="max-w-5xl max-h-[85vh] relative flex flex-col items-center">
-              <img 
-                src={gallery[selectedImageIndex].src} 
-                alt={gallery[selectedImageIndex].title}
-                referrerPolicy="no-referrer"
-                className="max-w-full max-h-[75vh] object-contain rounded-2xl border border-white/20 shadow-2xl"
-              />
-              <div className="mt-4 text-center">
-                <span className="text-[#d4af37] text-xs font-bold uppercase tracking-wider block">
-                  {gallery[selectedImageIndex].category} ({selectedImageIndex + 1} / {gallery.length})
-                </span>
-                <h4 className="text-xl font-bold font-display text-white mt-1">
-                  {gallery[selectedImageIndex].title}
-                </h4>
-              </div>
-            </div>
-
-            {/* Правая стрелка */}
-            <button 
-              onClick={() => setSelectedImageIndex((selectedImageIndex + 1) % gallery.length)}
-              className="absolute right-4 sm:right-8 p-3 rounded-full bg-white/10 text-white hover:bg-[#d4af37] hover:text-black transition-all z-10"
-            >
-              <ChevronRight className="w-6 h-6" />
-            </button>
-
-          </div>
-        )}
-      </AnimatePresence>
+      <LuxuryGalleryModal
+        selectedIndex={selectedImageIndex}
+        onClose={() => setSelectedImageIndex(null)}
+        gallery={gallery}
+        heroImage={heroImage}
+      />
 
       {/* =========================================================================
-          15. МОДАЛЬНОЕ ОКНО УПРАВЛЕНИЯ ФОТОГРАФИЯМИ
+          14. MODAL ZARZĄDZANIA ZDJĘCIAMI
          ========================================================================= */}
       <PhotoManagerModal
         isOpen={isPhotoManagerOpen}
@@ -1755,7 +1537,7 @@ export default function App() {
       />
 
       {/* =========================================================================
-          16. МОДАЛЬНОЕ ОКНО АВТОРИЗАЦИИ ВЛАДЕЛЬЦА (PANEL WŁAŚCICIELA)
+          15. MODAL WŁAŚCICIELA PIN
          ========================================================================= */}
       <AnimatePresence>
         {isAdminModalOpen && (
@@ -1768,6 +1550,7 @@ export default function App() {
             >
               <button
                 onClick={() => {
+                  audioSynth.playClick();
                   setIsAdminModalOpen(false);
                   setAdminPinError('');
                   setAdminPinInput('');
@@ -1782,11 +1565,11 @@ export default function App() {
                   <Lock className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white font-display">
+                  <h3 className="text-xl font-bold text-white font-syne">
                     Panel Właściciela
                   </h3>
                   <p className="text-xs text-gray-400">
-                    Dostęp do zarządzania zdjęciami pojazdu
+                    Dostęp do edycji zdjęć pojazdu
                   </p>
                 </div>
               </div>
@@ -1815,6 +1598,7 @@ export default function App() {
                   <button
                     type="button"
                     onClick={() => {
+                      audioSynth.playClick();
                       setIsAdminModalOpen(false);
                       setAdminPinError('');
                       setAdminPinInput('');
@@ -1836,15 +1620,17 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Floating status badge for Admin mode */}
+      {/* Admin Floating Control Badge */}
       {isAdmin && (
         <div className="fixed bottom-20 left-4 z-40 bg-[#0a0a0f]/95 backdrop-blur-md border border-[#d4af37]/60 p-2 px-3.5 rounded-full flex items-center gap-2 shadow-2xl text-xs text-[#f6e05e]">
           <ShieldCheck className="w-4 h-4 text-[#f6e05e]" />
           <span className="font-semibold hidden sm:inline">Tryb Właściciela</span>
           <button
-            onClick={() => setIsTelegramModalOpen(true)}
+            onClick={() => {
+              audioSynth.playClick();
+              setIsTelegramModalOpen(true);
+            }}
             className="px-2.5 py-1 rounded-full bg-[#229ED9]/20 text-[#229ED9] hover:bg-[#229ED9] hover:text-white transition-all text-[11px] font-bold flex items-center gap-1 border border-[#229ED9]/40"
-            title="Konfiguracja Telegram Bot"
           >
             <Bot className="w-3.5 h-3.5" />
             <span>Telegram Bot</span>
@@ -1852,26 +1638,27 @@ export default function App() {
           <button
             onClick={handleAdminLogout}
             className="ml-1 px-2.5 py-1 rounded-full bg-red-500/20 text-red-300 hover:bg-red-500 hover:text-white transition-all text-[11px] font-bold"
-            title="Zablokuj tryb edycji"
           >
             Zablokuj
           </button>
         </div>
       )}
 
-      {/* =========================================================================
-          15. МОБИЛЬНАЯ ФИКСИРОВАННАЯ НИЖНЯЯ ПАНЕЛЬ СВЯЗИ (MOBILE STICKY ACTION BAR)
-         ========================================================================= */}
+      {/* Mobile Sticky Action Bar */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0a0a0f]/95 backdrop-blur-xl border-t border-[#d4af37]/30 p-2.5 px-4 flex items-center justify-between gap-2 shadow-2xl">
         <a
           href="#kontakt"
+          onClick={() => audioSynth.playClick()}
           className="flex-1 py-2.5 px-3 rounded-xl bg-white/5 border border-white/10 text-white font-semibold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-transform"
         >
-          <Send className="w-3.5 h-3.5 text-[#d4af37]" />
+          <Send className="w-3.5 h-3.5 text-[#f6e05e]" />
           <span>Kontakt</span>
         </a>
         <button
-          onClick={() => setIsTestDriveOpen(true)}
+          onClick={() => {
+            audioSynth.playClick();
+            setIsTestDriveOpen(true);
+          }}
           className="flex-1 py-2.5 px-3 rounded-xl cta-button font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-transform text-black"
         >
           <Calendar className="w-3.5 h-3.5 text-black" />
@@ -1879,29 +1666,23 @@ export default function App() {
         </button>
       </div>
 
-      {/* =========================================================================
-          16. КНОПКА ВОЗВРАТА НАВЕРХ (FLOATING BACK TO TOP BUTTON)
-         ========================================================================= */}
+      {/* Scroll to Top */}
       <AnimatePresence>
         {showScrollTop && (
           <motion.button
             initial={{ opacity: 0, scale: 0.5, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.5, y: 20 }}
-            transition={{ duration: 0.3 }}
             onClick={scrollToTop}
-            className="fixed bottom-20 md:bottom-8 right-5 z-50 p-3.5 rounded-2xl bg-[#0a0a0f]/90 backdrop-blur-xl border border-[#d4af37]/60 text-[#f6e05e] hover:bg-gradient-to-r hover:from-[#f6e05e] hover:to-[#d4af37] hover:text-black shadow-[0_4px_25px_rgba(212,175,55,0.35)] hover:shadow-[0_0_30px_rgba(246,224,94,0.6)] transition-all duration-300 hover:scale-110 active:scale-95 group flex items-center justify-center"
-            aria-label="Do góry"
+            className="fixed bottom-20 md:bottom-8 right-5 z-50 p-3.5 rounded-2xl bg-[#0a0a0f]/90 backdrop-blur-xl border border-[#d4af37]/60 text-[#f6e05e] hover:bg-[#d4af37] hover:text-black shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95 flex items-center justify-center"
             title="Przewiń do góry"
           >
-            <ArrowUp className="w-5 h-5 group-hover:-translate-y-0.5 transition-transform duration-300" />
+            <ArrowUp className="w-5 h-5" />
           </motion.button>
         )}
       </AnimatePresence>
 
-      {/* =========================================================================
-          17. МОДАЛЬНОЕ ОКНО НАСТРОЙКИ TELEGRAM БОТА (TELEGRAM BOT CONFIG MODAL)
-         ========================================================================= */}
+      {/* Telegram Config Modal */}
       <AnimatePresence>
         {isTelegramModalOpen && (
           <div className="fixed inset-0 z-[3000] bg-black/85 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto">
@@ -1913,6 +1694,7 @@ export default function App() {
             >
               <button
                 onClick={() => {
+                  audioSynth.playClick();
                   setIsTelegramModalOpen(false);
                   setTelegramTestStatus({ type: null, message: '' });
                 }}
@@ -1926,60 +1708,12 @@ export default function App() {
                   <Bot className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white font-display">
+                  <h3 className="text-xl font-bold text-white font-syne">
                     Telegram Powiadomienia
                   </h3>
                   <p className="text-xs text-gray-400">
                     Otrzymuj wiadomości i rezerwacje prosto do Telegramu
                   </p>
-                </div>
-              </div>
-
-              {/* Серверный статус */}
-              <div className="mb-4">
-                <div className={`p-3 rounded-xl border text-xs font-semibold flex items-center justify-between gap-2 ${
-                  serverTelegramReady
-                    ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'
-                    : 'bg-amber-500/15 border-amber-500/30 text-amber-300'
-                }`}>
-                  <div className="flex items-center gap-2">
-                    <span className={`w-2.5 h-2.5 rounded-full ${serverTelegramReady ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
-                    <span>
-                      {serverTelegramReady
-                        ? 'Статус: Бот сохранен и готов к отправке'
-                        : 'Статус: Введите токен и нажмите «Zapisz i Zamknij»'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Инструкция как настроить */}
-              <div className="p-4 rounded-2xl bg-white/5 border border-white/10 mb-6 text-xs text-gray-300 space-y-3">
-                <div className="font-bold text-[#f6e05e] flex items-center gap-1.5 text-xs">
-                  <HelpCircle className="w-4 h-4 text-[#f6e05e]" />
-                  Как быстро узнать свой Chat ID и подключить бота:
-                </div>
-                
-                <div className="space-y-2 text-gray-300 font-light text-[12px] leading-relaxed">
-                  <div className="p-2.5 rounded-xl bg-black/40 border border-white/10 space-y-1">
-                    <p className="font-semibold text-white text-[11px] uppercase tracking-wider text-[#229ED9]">
-                      💡 Способ 1: Узнать через Telegram за 5 секунд
-                    </p>
-                    <p>
-                      Перейдите в Telegram к боту <a href="https://t.me/userinfobot" target="_blank" rel="noopener noreferrer" className="text-[#229ED9] underline font-bold">@userinfobot</a> или <a href="https://t.me/getidsbot" target="_blank" rel="noopener noreferrer" className="text-[#229ED9] underline font-bold">@getidsbot</a>. Нажмите <b>START</b> — он мгновенно напишет ваш <b>Id</b> (число из 9-10 цифр). Скопируйте его в поле «Chat ID».
-                    </p>
-                  </div>
-
-                  <div className="p-2.5 rounded-xl bg-black/40 border border-white/10 space-y-1">
-                    <p className="font-semibold text-white text-[11px] uppercase tracking-wider text-emerald-400">
-                      ⚡ Способ 2: Автоматическое определение
-                    </p>
-                    <ol className="list-decimal pl-4 space-y-1">
-                      <li>Вставьте ваш <b>Bot Token</b> ниже (полученный у <a href="https://t.me/BotFather" target="_blank" rel="noopener noreferrer" className="text-[#229ED9] underline font-bold">@BotFather</a>).</li>
-                      <li>Откройте вашего бота в Telegram и отправьте ему <code>/start</code> или <code>Привет</code>.</li>
-                      <li>Нажмите кнопку ниже <b>«🔍 Определить Chat ID автоматически»</b>!</li>
-                    </ol>
-                  </div>
                 </div>
               </div>
 
@@ -1992,7 +1726,7 @@ export default function App() {
                     type="text"
                     value={telegramToken}
                     onChange={(e) => setTelegramToken(e.target.value)}
-                    placeholder="7123456789:AAE... (от @BotFather)"
+                    placeholder="7123456789:AAE... (od @BotFather)"
                     className="w-full px-4 py-3 rounded-xl bg-black/50 border border-white/15 text-white placeholder-gray-500 focus:outline-none focus:border-[#229ED9] text-xs font-mono"
                   />
                 </div>
@@ -2000,7 +1734,7 @@ export default function App() {
                 <div>
                   <div className="flex items-center justify-between mb-1.5 flex-wrap gap-1">
                     <label className="block text-xs font-semibold text-gray-300">
-                      2. Ваш Telegram Chat ID / User ID:
+                      2. Chat ID / User ID:
                     </label>
                     <button
                       type="button"
@@ -2011,10 +1745,10 @@ export default function App() {
                       {isDetectingChatId ? (
                         <>
                           <Loader2 className="w-3 h-3 animate-spin" />
-                          <span>Ищем Chat ID...</span>
+                          <span>Szukam Chat ID...</span>
                         </>
                       ) : (
-                        <span>🔍 Определить Chat ID автоматически</span>
+                        <span>🔍 Wykryj Chat ID automatycznie</span>
                       )}
                     </button>
                   </div>
@@ -2022,12 +1756,11 @@ export default function App() {
                     type="text"
                     value={telegramChatId}
                     onChange={(e) => setTelegramChatId(e.target.value)}
-                    placeholder="123456789 (нажмите кнопку выше)"
+                    placeholder="123456789"
                     className="w-full px-4 py-3 rounded-xl bg-black/50 border border-white/15 text-white placeholder-gray-500 focus:outline-none focus:border-[#229ED9] text-xs font-mono"
                   />
                 </div>
 
-                {/* Статус проверки */}
                 {telegramTestStatus.type && (
                   <div className={`p-3.5 rounded-xl border text-xs font-medium flex items-start gap-2.5 ${
                     telegramTestStatus.type === 'success'
@@ -2051,10 +1784,7 @@ export default function App() {
                     className="flex-1 py-3 px-4 rounded-xl bg-[#229ED9]/20 hover:bg-[#229ED9] text-[#229ED9] hover:text-white border border-[#229ED9]/50 font-bold text-xs transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                   >
                     {telegramTestLoading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Wysyłanie...</span>
-                      </>
+                      <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
                       <>
                         <Send className="w-3.5 h-3.5" />
@@ -2070,7 +1800,7 @@ export default function App() {
                       setIsTelegramModalOpen(false);
                       setTelegramTestStatus({ type: null, message: '' });
                     }}
-                    className="py-3 px-6 rounded-xl bg-gradient-to-r from-[#f6e05e] via-[#d4af37] to-[#b8860b] text-black font-bold text-xs hover:brightness-110 transition-all shadow-lg shadow-[#d4af37]/20 font-semibold"
+                    className="py-3 px-6 rounded-xl bg-[#d4af37] text-black font-bold text-xs hover:bg-[#f6e05e] transition-all shadow-lg"
                   >
                     Zapisz i Zamknij
                   </button>

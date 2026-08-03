@@ -27,6 +27,9 @@ export const CAR_CONFIG = {
   transmission: "Manualna (5-biegowa)",
   fuelType: "Diesel (Common Rail)",
   bodyType: "Minivan / MPV (5-miejscowy)",
+  statusBadge: "Stan Bardzo Dobry",
+  price: "8 999 zł",
+  fuelConsumption: "5.2 l / 100 km",
   
   // Изображения автомобиля
   images: {
@@ -42,6 +45,7 @@ export const CAR_CONFIG = {
   // Контактные данные продавца
   seller: {
     name: "Właściciel",
+    phone: "+48 500 000 000",
     telegramUrl: "https://t.me/vadimmartin",
     whatsappUrl: "https://wa.me/48500000000",
     facebookUrl: "https://www.facebook.com/vdjvadimmartin",
