@@ -56,10 +56,12 @@ import {
   Eye,
   Zap,
   Radio,
-  Share2
+  Share2,
+  FolderArchive
 } from 'lucide-react';
 import { CAR_CONFIG } from './carData';
 import { PhotoManagerModal, GalleryItem } from './components/PhotoManagerModal';
+import { PhotoVaultSection } from './components/PhotoVaultSection';
 import { CepikHistory } from './components/CepikHistory';
 import { LuxuryGalleryModal } from './components/LuxuryGalleryModal';
 import { AudioDashboard } from './components/AudioDashboard';
@@ -792,6 +794,14 @@ export default function App() {
               Galeria HD
             </a>
             <a 
+              href="#magazyn-zdjec" 
+              onClick={() => audioSynth.playClick()} 
+              className="px-3.5 py-2 rounded-full text-[#f6e05e] bg-[#d4af37]/15 border border-[#d4af37]/30 hover:text-black hover:bg-[#d4af37] transition-all duration-300 whitespace-nowrap active:scale-95 font-semibold flex items-center gap-1.5"
+            >
+              <FolderArchive className="w-3.5 h-3.5" />
+              <span>Magazyn Zdjęć</span>
+            </a>
+            <a 
               href="#serwis" 
               onClick={() => audioSynth.playClick()} 
               className="px-3.5 py-2 rounded-full hover:text-black hover:bg-[#d4af37] transition-all duration-300 whitespace-nowrap active:scale-95"
@@ -903,6 +913,14 @@ export default function App() {
                 >
                   <Camera className="w-4 h-4 text-[#f6e05e]" />
                   <span>Fotogaleria HD</span>
+                </a>
+                <a 
+                  href="#magazyn-zdjec" 
+                  onClick={() => { audioSynth.playClick(); setMobileMenuOpen(false); }} 
+                  className="p-3 rounded-2xl bg-[#d4af37]/15 border border-[#d4af37]/30 text-[#f6e05e] hover:bg-[#d4af37]/25 flex items-center gap-3 font-bold text-sm transition-all"
+                >
+                  <FolderArchive className="w-4 h-4 text-[#f6e05e]" />
+                  <span>Magazyn & Хранилище Zdjęć</span>
                 </a>
                 <a 
                   href="#serwis" 
@@ -1345,6 +1363,18 @@ export default function App() {
           </div>
         )}
       </section>
+
+      {/* =========================================================================
+          7.5. DEDYKOWANE DLA UŻYTKOWNIKA CENTRUM PRZECHOWYWANIA ZDJĘĆ (MAGAZYN HD)
+         ========================================================================= */}
+      <PhotoVaultSection
+        gallery={gallery}
+        heroImage={heroImage}
+        onUpdateGallery={handleUpdateGallery}
+        onUpdateHero={handleUpdateHero}
+        onResetDefaults={handleResetDefaults}
+        onSelectImage={(index) => setSelectedImageIndex(index)}
+      />
 
       {/* =========================================================================
           8. HISTORIA POJAZDU & RAPORT CEPIK
