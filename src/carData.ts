@@ -4,12 +4,35 @@
    галерея и характеристики. Вы можете изменять любые значения ниже.
    ========================================================================== */
 
-import heroImg from './assets/images/citroen_c4_hero_1785044801876.jpg';
-import interiorImg from './assets/images/citroen_c4_interior_1785044814261.jpg';
-import rearImg from './assets/images/citroen_c4_rear_1785044826811.jpg';
-import trunkImg from './assets/images/citroen_c4_trunk_1785540318427.jpg';
-import dashboardImg from './assets/images/citroen_c4_dashboard_1785540332304.jpg';
-import wheelsImg from './assets/images/citroen_c4_wheels_1785540344092.jpg';
+// Safe dynamic asset loader that prevents build errors when files are deleted in GitHub / git repository
+const localImageModules = import.meta.glob<string>('/src/assets/images/*.{jpg,jpeg,png,webp,svg}', {
+  eager: true,
+  import: 'default'
+});
+
+const getAssetUrl = (keyword: string, fallbackUrl: string): string => {
+  for (const path in localImageModules) {
+    if (path.toLowerCase().includes(keyword.toLowerCase())) {
+      return localImageModules[path];
+    }
+  }
+  return fallbackUrl;
+};
+
+// Fallback high quality Citroën C4 / MPV car images
+const FALLBACK_HERO = "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?q=80&w=1600&auto=format&fit=crop";
+const FALLBACK_INTERIOR = "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=1600&auto=format&fit=crop";
+const FALLBACK_REAR = "https://images.unsplash.com/photo-1541348263662-e082662d82da?q=80&w=1600&auto=format&fit=crop";
+const FALLBACK_DASHBOARD = "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=1600&auto=format&fit=crop";
+const FALLBACK_TRUNK = "https://images.unsplash.com/photo-1583121274602-3e2820c69888?q=80&w=1600&auto=format&fit=crop";
+const FALLBACK_WHEELS = "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?q=80&w=1600&auto=format&fit=crop";
+
+export const heroImg = getAssetUrl('hero', FALLBACK_HERO);
+export const interiorImg = getAssetUrl('interior', FALLBACK_INTERIOR);
+export const rearImg = getAssetUrl('rear', FALLBACK_REAR);
+export const dashboardImg = getAssetUrl('dashboard', FALLBACK_DASHBOARD);
+export const trunkImg = getAssetUrl('trunk', FALLBACK_TRUNK);
+export const wheelsImg = getAssetUrl('wheels', FALLBACK_WHEELS);
 
 export const DEFAULT_GALLERY_ITEMS = [
   { id: 'def-1', title: 'Citroën C4 Picasso - Przód / Sylwetka', src: heroImg, category: 'Nadwozie' },
