@@ -10,6 +10,16 @@ import rearImg from './assets/images/citroen_c4_rear_1785044826811.jpg';
 import trunkImg from './assets/images/citroen_c4_trunk_1785540318427.jpg';
 import dashboardImg from './assets/images/citroen_c4_dashboard_1785540332304.jpg';
 import wheelsImg from './assets/images/citroen_c4_wheels_1785540344092.jpg';
+
+export const DEFAULT_GALLERY_ITEMS = [
+  { id: 'def-1', title: 'Citroën C4 Picasso - Przód / Sylwetka', src: heroImg, category: 'Nadwozie' },
+  { id: 'def-2', title: 'Citroën C4 Picasso - Wnętrze / Tapicerka', src: interiorImg, category: 'Wnętrze' },
+  { id: 'def-3', title: 'Citroën C4 Picasso - Tył / Nadwozie', src: rearImg, category: 'Nadwozie' },
+  { id: 'def-4', title: 'Citroën C4 Picasso - Deska Rozdzielcza', src: dashboardImg, category: 'Detale' },
+  { id: 'def-5', title: 'Citroën C4 Picasso - Pojemny Bagażnik', src: trunkImg, category: 'Detale' },
+  { id: 'def-6', title: 'Citroën C4 Picasso - Felgi i Opony', src: wheelsImg, category: 'Detale' }
+];
+
 export const CAR_CONFIG = {
   // Основные данные автомобиля
   brand: "Citroën",
@@ -38,7 +48,7 @@ export const CAR_CONFIG = {
     trunk: trunkImg,
     dashboard: dashboardImg,
     wheels: wheelsImg,
-    gallery: []
+    gallery: DEFAULT_GALLERY_ITEMS
   },
 
   // Контактные данные продавца

@@ -216,11 +216,13 @@ export default function App() {
           const serverGallery = Array.isArray(data.gallery) ? data.gallery : [];
           const serverHero = data.heroImage;
 
-          // If server has gallery items and they are >= local gallery items
-          if (serverGallery.length > 0 && (!localGallery || serverGallery.length >= localGallery.length)) {
+          if (serverHero && active) {
+            setHeroImage(serverHero);
+          }
+
+          if (serverGallery.length > 0) {
             if (active) {
               setGallery(serverGallery);
-              if (serverHero) setHeroImage(serverHero);
               try {
                 localStorage.setItem('citroen_custom_gallery', JSON.stringify(serverGallery));
                 if (serverHero) localStorage.setItem('citroen_custom_hero', serverHero);
@@ -237,7 +239,7 @@ export default function App() {
         console.warn('Fetch server gallery error:', err);
       }
 
-      // If server does not have photos or has fewer photos than local browser, sync local photos to server!
+      // If server does not have photos, but local browser has uploaded local photos, sync local photos to server!
       if (localGallery && localGallery.length > 0) {
         if (active) {
           setGallery(localGallery);

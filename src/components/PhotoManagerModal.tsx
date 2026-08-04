@@ -41,20 +41,44 @@ export function PhotoManagerModal({
   // Обработка загрузки файла с авто-сжатием
   const handleFileUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
-    const file = files[0];
-    if (!file.type.startsWith('image/')) {
-      setStatusMessage('Błąd: Wybierz plik graficzny (JPG, PNG, WEBP)');
+    
+    const validFiles: File[] = [];
+    for (let i = 0; i < files.length; i++) {
+      if (files[i].type.startsWith('image/')) {
+        validFiles.push(files[i]);
+      }
+    }
+
+    if (validFiles.length === 0) {
+      setStatusMessage('Błąd: Wybierz pliki graficzne (JPG, PNG, WEBP)');
       return;
     }
 
     try {
-      setStatusMessage('Optymalizacja zdjęcia...');
-      const compressedDataUrl = await compressImage(file, 1600, 1200, 0.82);
-      setUploadedPreview(compressedDataUrl);
-      setStatusMessage('Zdjęcie załadowane! Wpisz tytuł i dodaj do galerii.');
+      setStatusMessage(`Optymalizacja ${validFiles.length} zdjęć...`);
+      const newItems: GalleryItem[] = [];
+
+      for (let i = 0; i < validFiles.length; i++) {
+        const file = validFiles[i];
+        setStatusMessage(`Przetwarzanie zdjęcia ${i + 1} z ${validFiles.length}...`);
+        const compressedDataUrl = await compressImage(file, 1600, 1200, 0.82);
+        
+        newItems.push({
+          id: Date.now() + i,
+          title: file.name.replace(/\.[^/.]+$/, "") || `Zdjęcie Citroën (${gallery.length + i + 1})`,
+          src: compressedDataUrl,
+          category: newCategory
+        });
+      }
+
+      const updated = [...newItems, ...gallery];
+      onUpdateGallery(updated);
+      setUploadedPreview(null);
+      setStatusMessage(`Pomyślnie dodano ${validFiles.length} zdjęć do galerii i zsynchronizowano z serwerem!`);
+      setTimeout(() => setStatusMessage(null), 4000);
     } catch (err) {
       console.error(err);
-      setStatusMessage('Błąd podczas przetwarzania zdjęcia.');
+      setStatusMessage('Błąd podczas przetwarzania zdjęć.');
     }
   };
 
@@ -231,6 +255,7 @@ export function PhotoManagerModal({
                   type="file"
                   id="photo-upload-input"
                   accept="image/*"
+                  multiple
                   onChange={(e) => handleFileUpload(e.target.files)}
                   className="hidden"
                 />
