@@ -56,12 +56,10 @@ import {
   Eye,
   Zap,
   Radio,
-  Share2,
-  FolderArchive
+  Share2
 } from 'lucide-react';
 import { CAR_CONFIG } from './carData';
 import { PhotoManagerModal, GalleryItem } from './components/PhotoManagerModal';
-import { PhotoVaultSection } from './components/PhotoVaultSection';
 import { CepikHistory } from './components/CepikHistory';
 import { LuxuryGalleryModal } from './components/LuxuryGalleryModal';
 import { AudioDashboard } from './components/AudioDashboard';
@@ -215,53 +213,25 @@ export default function App() {
         const res = await fetch('/api/gallery');
         if (res.ok) {
           const data = await res.json();
-          const serverGallery = Array.isArray(data.gallery) ? data.gallery : [];
-          const serverHero = data.heroImage;
-
-          if (serverHero && active) {
-            setHeroImage(serverHero);
-          }
-
-          if (serverGallery.length > 0) {
-            const normalizedServerGallery = serverGallery.map((item: any, idx: number) => ({
-              id: item.id || `server_${idx}_${Date.now()}`,
-              title: item.title || `Zdjęcie Citroën (${idx + 1})`,
-              src: item.src,
-              category: item.category || 'Nadwozie'
-            })).filter(item => Boolean(item.src));
-
-            if (active && normalizedServerGallery.length > 0) {
-              setGallery(normalizedServerGallery);
-              try {
-                localStorage.setItem('citroen_custom_gallery', JSON.stringify(normalizedServerGallery));
-                if (serverHero) localStorage.setItem('citroen_custom_hero', serverHero);
-              } catch {
-                // ignore
-              }
-              await setIDBItem('citroen_custom_gallery', normalizedServerGallery);
-              if (serverHero) await setIDBItem('citroen_custom_hero', serverHero);
-              return;
+          if (data && Array.isArray(data.gallery) && data.gallery.length > 0) {
+            if (active) {
+              setGallery(data.gallery);
+              if (data.heroImage) setHeroImage(data.heroImage);
             }
+            return;
           }
         }
       } catch (err) {
         console.warn('Fetch server gallery error:', err);
       }
 
-      // If server does not have photos, but local browser has uploaded local photos, sync local photos to server!
+      // If server does not have photos yet, but this browser has uploaded local photos, publish them to server now!
       if (localGallery && localGallery.length > 0) {
-        const normalizedLocal = localGallery.map((item: any, idx: number) => ({
-          id: item.id || `local_${idx}`,
-          title: item.title || `Zdjęcie Citroën (${idx + 1})`,
-          src: item.src,
-          category: item.category || 'Nadwozie'
-        })).filter(item => Boolean(item.src));
-
-        if (active && normalizedLocal.length > 0) {
-          setGallery(normalizedLocal);
+        if (active) {
+          setGallery(localGallery);
           if (localHero) setHeroImage(localHero);
-          await syncServerGallery(normalizedLocal, localHero || CAR_CONFIG.images.hero);
         }
+        await syncServerGallery(localGallery, localHero || CAR_CONFIG.images.hero);
       }
     }
 
@@ -271,20 +241,14 @@ export default function App() {
 
   const handleUpdateGallery = async (newGallery: GalleryItem[]) => {
     audioSynth.playClick();
-    const normalized = newGallery.map((item: any, idx: number) => ({
-      id: item.id || `item_${idx}_${Date.now()}`,
-      title: item.title || `Zdjęcie Citroën (${idx + 1})`,
-      src: item.src,
-      category: item.category || 'Nadwozie'
-    }));
-    setGallery(normalized);
+    setGallery(newGallery);
     try {
-      localStorage.setItem('citroen_custom_gallery', JSON.stringify(normalized));
+      localStorage.setItem('citroen_custom_gallery', JSON.stringify(newGallery));
     } catch {
       // ignore
     }
-    await setIDBItem('citroen_custom_gallery', normalized);
-    await syncServerGallery(normalized, heroImage);
+    await setIDBItem('citroen_custom_gallery', newGallery);
+    await syncServerGallery(newGallery, heroImage);
   };
 
   const handleUpdateHero = async (newHero: string) => {
@@ -314,10 +278,10 @@ export default function App() {
     await syncServerGallery([], CAR_CONFIG.images.hero);
   };
 
-  const handleDeleteImage = (id: string | number, e: React.MouseEvent) => {
+  const handleDeleteImage = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     audioSynth.playClick();
-    const updated = gallery.filter(item => String(item.id) !== String(id));
+    const updated = gallery.filter(item => item.id !== id);
     handleUpdateGallery(updated);
   };
 
@@ -366,7 +330,7 @@ export default function App() {
   };
 
   const filteredGallery = gallery.filter(item => 
-    galleryFilter === 'Wszystkie' || (item.category || 'Nadwozie') === galleryFilter
+    galleryFilter === 'Wszystkie' || item.category === galleryFilter
   );
 
   // Telegram Integration State
@@ -794,14 +758,6 @@ export default function App() {
               Galeria HD
             </a>
             <a 
-              href="#magazyn-zdjec" 
-              onClick={() => audioSynth.playClick()} 
-              className="px-3.5 py-2 rounded-full text-[#f6e05e] bg-[#d4af37]/15 border border-[#d4af37]/30 hover:text-black hover:bg-[#d4af37] transition-all duration-300 whitespace-nowrap active:scale-95 font-semibold flex items-center gap-1.5"
-            >
-              <FolderArchive className="w-3.5 h-3.5" />
-              <span>Magazyn Zdjęć</span>
-            </a>
-            <a 
               href="#serwis" 
               onClick={() => audioSynth.playClick()} 
               className="px-3.5 py-2 rounded-full hover:text-black hover:bg-[#d4af37] transition-all duration-300 whitespace-nowrap active:scale-95"
@@ -913,14 +869,6 @@ export default function App() {
                 >
                   <Camera className="w-4 h-4 text-[#f6e05e]" />
                   <span>Fotogaleria HD</span>
-                </a>
-                <a 
-                  href="#magazyn-zdjec" 
-                  onClick={() => { audioSynth.playClick(); setMobileMenuOpen(false); }} 
-                  className="p-3 rounded-2xl bg-[#d4af37]/15 border border-[#d4af37]/30 text-[#f6e05e] hover:bg-[#d4af37]/25 flex items-center gap-3 font-bold text-sm transition-all"
-                >
-                  <FolderArchive className="w-4 h-4 text-[#f6e05e]" />
-                  <span>Magazyn & Хранилище Zdjęć</span>
                 </a>
                 <a 
                   href="#serwis" 
@@ -1363,18 +1311,6 @@ export default function App() {
           </div>
         )}
       </section>
-
-      {/* =========================================================================
-          7.5. DEDYKOWANE DLA UŻYTKOWNIKA CENTRUM PRZECHOWYWANIA ZDJĘĆ (MAGAZYN HD)
-         ========================================================================= */}
-      <PhotoVaultSection
-        gallery={gallery}
-        heroImage={heroImage}
-        onUpdateGallery={handleUpdateGallery}
-        onUpdateHero={handleUpdateHero}
-        onResetDefaults={handleResetDefaults}
-        onSelectImage={(index) => setSelectedImageIndex(index)}
-      />
 
       {/* =========================================================================
           8. HISTORIA POJAZDU & RAPORT CEPIK

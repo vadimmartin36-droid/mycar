@@ -16,105 +16,77 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 const CONFIG_FILE = path.join(process.cwd(), 'telegram_config.json');
 
 // --- SERVER GALLERY PERSISTENCE ---
-const DEFAULT_SERVER_GALLERY = [
-  {
-    id: 1,
-    title: "Citroën C4 Picasso - Widok z przodu 3/4",
-    src: "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=85&w=1600",
-    category: "Nadwozie"
-  },
-  {
-    id: 2,
-    title: "Panoromiczna przednia szyba i kokpit",
-    src: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=85&w=1600",
-    category: "Wnętrze"
-  },
-  {
-    id: 3,
-    title: "Stylistyka tyłu i reflektory LED",
-    src: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&q=85&w=1600",
-    category: "Nadwozie"
-  },
-  {
-    id: 4,
-    title: "Luksusowe wykończenie deski rozdzielczej",
-    src: "https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&q=85&w=1600",
-    category: "Wnętrze"
-  },
-  {
-    id: 5,
-    title: "Alufelgi fabryczne Citroën",
-    src: "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&q=85&w=1600",
-    category: "Detale"
-  },
-  {
-    id: 6,
-    title: "Kierownica z nieruchomym środkiem i tempomatem",
-    src: "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&q=85&w=1600",
-    category: "Detale"
-  }
-];
-
 let memoryGalleryConfig: { gallery: any[]; heroImage: string | null } = {
   gallery: [],
   heroImage: null
 };
 
-function loadInitialGalleryConfig() {
-  const configFile = path.join(process.cwd(), 'gallery_config.json');
-  try {
-    if (fs.existsSync(configFile)) {
-      const data = fs.readFileSync(configFile, 'utf-8');
-      const parsed = JSON.parse(data);
-      if (parsed) {
-        if (Array.isArray(parsed.gallery) && parsed.gallery.length > 0) {
-          memoryGalleryConfig.gallery = parsed.gallery.map((item: any, idx: number) => ({
-            id: item.id || idx + 1,
-            title: item.title || `Zdjęcie Citroën (${idx + 1})`,
-            src: item.src,
-            category: item.category || 'Nadwozie'
-          })).filter((item: any) => Boolean(item.src));
-        }
-        if (parsed.heroImage) {
-          memoryGalleryConfig.heroImage = parsed.heroImage;
+function getGalleryConfig() {
+  const configPaths = [
+    path.join(process.cwd(), 'gallery_config.json'),
+    path.join(process.cwd(), 'src/galleryDefaultConfig.json'),
+    path.join(__dirname, 'gallery_config.json'),
+    path.join(__dirname, 'src/galleryDefaultConfig.json')
+  ];
+
+  for (const p of configPaths) {
+    try {
+      if (fs.existsSync(p)) {
+        const data = fs.readFileSync(p, 'utf-8');
+        const parsed = JSON.parse(data);
+        if (parsed) {
+          let found = false;
+          if (Array.isArray(parsed.gallery) && parsed.gallery.length > 0) {
+            memoryGalleryConfig.gallery = parsed.gallery;
+            found = true;
+          }
+          if (parsed.heroImage) {
+            memoryGalleryConfig.heroImage = parsed.heroImage;
+            found = true;
+          }
+          if (found) {
+            break;
+          }
         }
       }
+    } catch (err) {
+      console.error('Błąd odczytu gallery_config.json:', err);
     }
-  } catch (err) {
-    console.error('Błąd odczytu gallery_config.json przy starcie:', err);
   }
-
-  if (!memoryGalleryConfig.gallery || memoryGalleryConfig.gallery.length === 0) {
-    memoryGalleryConfig.gallery = DEFAULT_SERVER_GALLERY;
-  }
+  return memoryGalleryConfig;
 }
-loadInitialGalleryConfig();
 
 function saveGalleryConfig(config: { gallery?: any[]; heroImage?: string | null }) {
-  if (config.gallery !== undefined && Array.isArray(config.gallery)) {
-    memoryGalleryConfig.gallery = config.gallery.map((item: any, idx: number) => ({
-      id: item.id || idx + 1,
-      title: item.title || `Zdjęcie Citroën (${idx + 1})`,
-      src: item.src,
-      category: item.category || 'Nadwozie'
-    })).filter((item: any) => Boolean(item.src));
-  }
+  if (config.gallery !== undefined) memoryGalleryConfig.gallery = config.gallery;
   if (config.heroImage !== undefined) memoryGalleryConfig.heroImage = config.heroImage;
 
-  const configFile = path.join(process.cwd(), 'gallery_config.json');
-  try {
-    fs.writeFileSync(configFile, JSON.stringify(memoryGalleryConfig, null, 2), 'utf-8');
-    console.log('Zapisano galerię do:', configFile);
-  } catch (err) {
-    console.error('Błąd zapisu galerii do pliku:', err);
+  const filesToWrite = [
+    path.join(process.cwd(), 'gallery_config.json'),
+    path.join(process.cwd(), 'src/galleryDefaultConfig.json'),
+    path.join(__dirname, 'gallery_config.json'),
+    path.join(__dirname, 'src/galleryDefaultConfig.json')
+  ];
+
+  for (const filePath of filesToWrite) {
+    try {
+      const dir = path.dirname(filePath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      fs.writeFileSync(filePath, JSON.stringify(memoryGalleryConfig, null, 2), 'utf-8');
+      console.log('Zapisano galerię do pliku:', filePath);
+    } catch (err) {
+      console.error('Błąd zapisu galerii do pliku:', filePath, err);
+    }
   }
 }
 
 // API: Odczyt galerii zdjęć z serwera
 app.get('/api/gallery', (req, res) => {
+  const config = getGalleryConfig();
   res.json({
-    gallery: memoryGalleryConfig.gallery,
-    heroImage: memoryGalleryConfig.heroImage
+    gallery: config.gallery,
+    heroImage: config.heroImage
   });
 });
 
