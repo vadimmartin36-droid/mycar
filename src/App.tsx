@@ -221,18 +221,25 @@ export default function App() {
           }
 
           if (serverGallery.length > 0) {
-            if (active) {
-              setGallery(serverGallery);
+            const normalizedServerGallery = serverGallery.map((item: any, idx: number) => ({
+              id: item.id || `server_${idx}_${Date.now()}`,
+              title: item.title || `Zdjęcie Citroën (${idx + 1})`,
+              src: item.src,
+              category: item.category || 'Nadwozie'
+            })).filter(item => Boolean(item.src));
+
+            if (active && normalizedServerGallery.length > 0) {
+              setGallery(normalizedServerGallery);
               try {
-                localStorage.setItem('citroen_custom_gallery', JSON.stringify(serverGallery));
+                localStorage.setItem('citroen_custom_gallery', JSON.stringify(normalizedServerGallery));
                 if (serverHero) localStorage.setItem('citroen_custom_hero', serverHero);
               } catch {
                 // ignore
               }
-              await setIDBItem('citroen_custom_gallery', serverGallery);
+              await setIDBItem('citroen_custom_gallery', normalizedServerGallery);
               if (serverHero) await setIDBItem('citroen_custom_hero', serverHero);
+              return;
             }
-            return;
           }
         }
       } catch (err) {
@@ -241,11 +248,18 @@ export default function App() {
 
       // If server does not have photos, but local browser has uploaded local photos, sync local photos to server!
       if (localGallery && localGallery.length > 0) {
-        if (active) {
-          setGallery(localGallery);
+        const normalizedLocal = localGallery.map((item: any, idx: number) => ({
+          id: item.id || `local_${idx}`,
+          title: item.title || `Zdjęcie Citroën (${idx + 1})`,
+          src: item.src,
+          category: item.category || 'Nadwozie'
+        })).filter(item => Boolean(item.src));
+
+        if (active && normalizedLocal.length > 0) {
+          setGallery(normalizedLocal);
           if (localHero) setHeroImage(localHero);
+          await syncServerGallery(normalizedLocal, localHero || CAR_CONFIG.images.hero);
         }
-        await syncServerGallery(localGallery, localHero || CAR_CONFIG.images.hero);
       }
     }
 
@@ -255,14 +269,20 @@ export default function App() {
 
   const handleUpdateGallery = async (newGallery: GalleryItem[]) => {
     audioSynth.playClick();
-    setGallery(newGallery);
+    const normalized = newGallery.map((item: any, idx: number) => ({
+      id: item.id || `item_${idx}_${Date.now()}`,
+      title: item.title || `Zdjęcie Citroën (${idx + 1})`,
+      src: item.src,
+      category: item.category || 'Nadwozie'
+    }));
+    setGallery(normalized);
     try {
-      localStorage.setItem('citroen_custom_gallery', JSON.stringify(newGallery));
+      localStorage.setItem('citroen_custom_gallery', JSON.stringify(normalized));
     } catch {
       // ignore
     }
-    await setIDBItem('citroen_custom_gallery', newGallery);
-    await syncServerGallery(newGallery, heroImage);
+    await setIDBItem('citroen_custom_gallery', normalized);
+    await syncServerGallery(normalized, heroImage);
   };
 
   const handleUpdateHero = async (newHero: string) => {
@@ -292,10 +312,10 @@ export default function App() {
     await syncServerGallery([], CAR_CONFIG.images.hero);
   };
 
-  const handleDeleteImage = (id: string, e: React.MouseEvent) => {
+  const handleDeleteImage = (id: string | number, e: React.MouseEvent) => {
     e.stopPropagation();
     audioSynth.playClick();
-    const updated = gallery.filter(item => item.id !== id);
+    const updated = gallery.filter(item => String(item.id) !== String(id));
     handleUpdateGallery(updated);
   };
 
@@ -344,7 +364,7 @@ export default function App() {
   };
 
   const filteredGallery = gallery.filter(item => 
-    galleryFilter === 'Wszystkie' || item.category === galleryFilter
+    galleryFilter === 'Wszystkie' || (item.category || 'Nadwozie') === galleryFilter
   );
 
   // Telegram Integration State
