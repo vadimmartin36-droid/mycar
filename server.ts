@@ -21,72 +21,45 @@ let memoryGalleryConfig: { gallery: any[]; heroImage: string | null } = {
   heroImage: null
 };
 
-function getGalleryConfig() {
-  const configPaths = [
-    path.join(process.cwd(), 'gallery_config.json'),
-    path.join(process.cwd(), 'src/galleryDefaultConfig.json'),
-    path.join(__dirname, 'gallery_config.json'),
-    path.join(__dirname, 'src/galleryDefaultConfig.json')
-  ];
-
-  for (const p of configPaths) {
-    try {
-      if (fs.existsSync(p)) {
-        const data = fs.readFileSync(p, 'utf-8');
-        const parsed = JSON.parse(data);
-        if (parsed) {
-          let found = false;
-          if (Array.isArray(parsed.gallery) && parsed.gallery.length > 0) {
-            memoryGalleryConfig.gallery = parsed.gallery;
-            found = true;
-          }
-          if (parsed.heroImage) {
-            memoryGalleryConfig.heroImage = parsed.heroImage;
-            found = true;
-          }
-          if (found) {
-            break;
-          }
+function loadInitialGalleryConfig() {
+  const configFile = path.join(process.cwd(), 'gallery_config.json');
+  try {
+    if (fs.existsSync(configFile)) {
+      const data = fs.readFileSync(configFile, 'utf-8');
+      const parsed = JSON.parse(data);
+      if (parsed) {
+        if (Array.isArray(parsed.gallery) && parsed.gallery.length > 0) {
+          memoryGalleryConfig.gallery = parsed.gallery;
+        }
+        if (parsed.heroImage) {
+          memoryGalleryConfig.heroImage = parsed.heroImage;
         }
       }
-    } catch (err) {
-      console.error('Błąd odczytu gallery_config.json:', err);
     }
+  } catch (err) {
+    console.error('Błąd odczytu gallery_config.json przy starcie:', err);
   }
-  return memoryGalleryConfig;
 }
+loadInitialGalleryConfig();
 
 function saveGalleryConfig(config: { gallery?: any[]; heroImage?: string | null }) {
   if (config.gallery !== undefined) memoryGalleryConfig.gallery = config.gallery;
   if (config.heroImage !== undefined) memoryGalleryConfig.heroImage = config.heroImage;
 
-  const filesToWrite = [
-    path.join(process.cwd(), 'gallery_config.json'),
-    path.join(process.cwd(), 'src/galleryDefaultConfig.json'),
-    path.join(__dirname, 'gallery_config.json'),
-    path.join(__dirname, 'src/galleryDefaultConfig.json')
-  ];
-
-  for (const filePath of filesToWrite) {
-    try {
-      const dir = path.dirname(filePath);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-      }
-      fs.writeFileSync(filePath, JSON.stringify(memoryGalleryConfig, null, 2), 'utf-8');
-      console.log('Zapisano galerię do pliku:', filePath);
-    } catch (err) {
-      console.error('Błąd zapisu galerii do pliku:', filePath, err);
-    }
+  const configFile = path.join(process.cwd(), 'gallery_config.json');
+  try {
+    fs.writeFileSync(configFile, JSON.stringify(memoryGalleryConfig, null, 2), 'utf-8');
+    console.log('Zapisano galerię do:', configFile);
+  } catch (err) {
+    console.error('Błąd zapisu galerii do pliku:', err);
   }
 }
 
 // API: Odczyt galerii zdjęć z serwera
 app.get('/api/gallery', (req, res) => {
-  const config = getGalleryConfig();
   res.json({
-    gallery: config.gallery,
-    heroImage: config.heroImage
+    gallery: memoryGalleryConfig.gallery,
+    heroImage: memoryGalleryConfig.heroImage
   });
 });
 

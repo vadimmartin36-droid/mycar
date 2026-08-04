@@ -213,10 +213,22 @@ export default function App() {
         const res = await fetch('/api/gallery');
         if (res.ok) {
           const data = await res.json();
-          if (data && Array.isArray(data.gallery) && data.gallery.length > 0) {
+          const serverGallery = Array.isArray(data.gallery) ? data.gallery : [];
+          const serverHero = data.heroImage;
+
+          // If server has gallery items and they are >= local gallery items
+          if (serverGallery.length > 0 && (!localGallery || serverGallery.length >= localGallery.length)) {
             if (active) {
-              setGallery(data.gallery);
-              if (data.heroImage) setHeroImage(data.heroImage);
+              setGallery(serverGallery);
+              if (serverHero) setHeroImage(serverHero);
+              try {
+                localStorage.setItem('citroen_custom_gallery', JSON.stringify(serverGallery));
+                if (serverHero) localStorage.setItem('citroen_custom_hero', serverHero);
+              } catch {
+                // ignore
+              }
+              await setIDBItem('citroen_custom_gallery', serverGallery);
+              if (serverHero) await setIDBItem('citroen_custom_hero', serverHero);
             }
             return;
           }
@@ -225,7 +237,7 @@ export default function App() {
         console.warn('Fetch server gallery error:', err);
       }
 
-      // If server does not have photos yet, but this browser has uploaded local photos, publish them to server now!
+      // If server does not have photos or has fewer photos than local browser, sync local photos to server!
       if (localGallery && localGallery.length > 0) {
         if (active) {
           setGallery(localGallery);
